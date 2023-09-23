@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+echo "[init-db-config] Running database migrations"
+
+# database migration
+(cd /the_wiki && python3 manage.py migrate --no-input)
+

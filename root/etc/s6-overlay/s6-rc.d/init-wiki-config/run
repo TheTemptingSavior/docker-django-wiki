@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+echo "[init-wiki-config] Updating permissions"
+
+# permissions
+mkdir -p /config /config/db /config/media /config/static
+lsiown -R abc:abc /config
+

@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+echo "[init-collectstatic-config] Collecting static files"
+
+# database migration
+(cd /the_wiki && python3 manage.py collectstatic --no-input)
+

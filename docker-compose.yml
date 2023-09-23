@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  wiki:
+    build: .
+    container_name: wiki
+    ports:
+      - "8000:80"
+    environment:
+      WIKI_ADMIN_USERNAME: admin
+      WIKI_ADMIN_PASSWORD: admin
+    volumes:
+      - ./data/db:/config/db
+      - ./data/media:/config/media
+      - ./data/static:/config/static

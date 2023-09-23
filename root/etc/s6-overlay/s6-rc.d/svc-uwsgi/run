@@ -1,0 +1,6 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+echo "[svc-uwsgi] Starting uwsgi server"
+
+uwsgi --ini /etc/uwsgi/uwsgi.ini

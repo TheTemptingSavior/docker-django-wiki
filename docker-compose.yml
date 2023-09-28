@@ -2,6 +2,7 @@ version: "3"
 
 services:
   wiki:
+    image: ghcr.io/thetemptingsavior/docker-django-wiki:master
     build: .
     container_name: wiki
     ports:
@@ -9,6 +10,8 @@ services:
     environment:
       WIKI_ADMIN_USERNAME: admin
       WIKI_ADMIN_PASSWORD: admin
+      # If set, will put auth in front of the entire wiki
+      WIKI_AUTH_EVERYWHERE: "true"
     volumes:
       - ./docker-data/db:/config/db
       - ./docker-data/media:/config/media

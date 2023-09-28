@@ -66,6 +66,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+if os.environ.get("WIKI_AUTH_EVERYWHERE", False):
+    MIDDLEWARE.append("the_wiki.middleware.AuthEverywhereMiddleware")
+
 ROOT_URLCONF = 'the_wiki.urls'
 
 TEMPLATES = [

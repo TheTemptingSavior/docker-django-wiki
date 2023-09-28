@@ -10,6 +10,7 @@ services:
       WIKI_ADMIN_USERNAME: admin
       WIKI_ADMIN_PASSWORD: admin
     volumes:
-      - ./data/db:/config/db
-      - ./data/media:/config/media
-      - ./data/static:/config/static
+      - ./docker-data/db:/config/db
+      - ./docker-data/media:/config/media
+      - ./docker-data/static:/config/static
+#      - ./docker-data/extra_settings.py:/the_wiki/the_wiki/extra_settings.py

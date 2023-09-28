@@ -1,0 +1,3 @@
+#!/bin/sh
+
+curl --silent --fail --unix-socket /tmp/django-wiki.sock http:/healthcheck  || exit 1

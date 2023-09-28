@@ -56,6 +56,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'the_wiki.middleware.HealthCheckMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

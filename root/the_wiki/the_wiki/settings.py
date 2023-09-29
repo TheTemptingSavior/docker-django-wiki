@@ -28,6 +28,8 @@ SECRET_KEY = os.environ.get("WIKI_SECRET_KEY", 'django-insecure-7&5g!0xlmu1s+i0s
 DEBUG = os.environ.get("WIKI_DEBUG", "false").lower() != "false"
 
 ALLOWED_HOSTS = ["*"]
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 
 # Application definition

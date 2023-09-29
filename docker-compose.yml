@@ -20,4 +20,5 @@ services:
       - ./docker-data/db:/config/db
       - ./docker-data/media:/config/media
       - ./docker-data/static:/config/static
+      - ./docker-data/templates:/config/templates
 #      - ./docker-data/extra_settings.py:/the_wiki/the_wiki/extra_settings.py

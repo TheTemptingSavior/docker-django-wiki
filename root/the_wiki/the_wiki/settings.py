@@ -91,6 +91,8 @@ TEMPLATES = [
         },
     },
 ]
+if os.environ.get("WIKI_CUSTOM_TEMPLATES", False):
+    TEMPLATES[0]["DIRS"].append(os.environ.get("WIKI_CUSTOM_TEMPLATES_PATH", "/config/templates/"))
 
 WSGI_APPLICATION = 'the_wiki.wsgi.application'
 

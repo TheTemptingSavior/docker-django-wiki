@@ -22,12 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-7&5g!0xlmu1s+i0s9^(mygt_=i+x(betc0ygetvsmg#%q$z!ld'
+SECRET_KEY = os.environ.get("WIKI_SECRET_KEY", 'django-insecure-7&5g!0xlmu1s+i0s9^(mygt_=i+x(betc0ygetvsmg#%q$z!ld')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("WIKI_DEBUG", "false").lower() != "false"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -127,15 +127,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = os.environ.get('WIKI_LANGUAGE_CODE', 'en-us')
+TIME_ZONE = os.environ.get('WIKI_TIME_ZONE', 'UTC')
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -148,9 +143,9 @@ MEDIA_URL = 'media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Wiki Customization
 SITE_ID = 1
 WIKI_ACCOUNT_HANDLING = True
 WIKI_ACCOUNT_SIGNUP_ALLOWED = False
@@ -160,6 +155,6 @@ LOGIN_REDIRECT_URL = reverse_lazy('wiki:get', kwargs={'path': ''})
 
 try:
     # Attempt to load any extra configuration the user may have provided
-    from the_wiki import extra_settings
+    from the_wiki.extra_settings import *
 except ImportError as _e:
     pass

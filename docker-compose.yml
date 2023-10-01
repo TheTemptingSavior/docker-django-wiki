@@ -16,8 +16,13 @@ services:
       WIKI_DEBUG: "false"
       WIKI_LANGUAGE_CODE: "en-gb"
       WIKI_TIME_ZONE: "UTC"
+      # When set will add the templates path to list of directories to search for templates
+      WIKI_CUSTOM_TEMPLATES: "false"
+      # Default value is '/config/templates'
+      WIKI_CUSTOM_TEMPLATES_PATH: "/config/templates"
     volumes:
       - ./docker-data/db:/config/db
       - ./docker-data/media:/config/media
       - ./docker-data/static:/config/static
+      - ./docker-data/templates:/config/templates
 #      - ./docker-data/extra_settings.py:/the_wiki/the_wiki/extra_settings.py

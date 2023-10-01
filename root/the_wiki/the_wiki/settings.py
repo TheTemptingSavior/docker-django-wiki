@@ -55,6 +55,10 @@ INSTALLED_APPS = [
     'wiki.plugins.notifications.apps.NotificationsConfig',
     'wiki.plugins.images.apps.ImagesConfig',
     'wiki.plugins.macros.apps.MacrosConfig',
+    'wiki.plugins.editsection.apps.EditSectionConfig',
+    'wiki.plugins.globalhistory.apps.GlobalHistoryConfig',
+    'wiki.plugins.links.apps.LinksConfig',
+    'wiki.plugins.help.apps.HelpConfig',
 ]
 
 MIDDLEWARE = [
@@ -93,6 +97,8 @@ TEMPLATES = [
         },
     },
 ]
+if os.environ.get("WIKI_CUSTOM_TEMPLATES", False):
+    TEMPLATES[0]["DIRS"].append(os.environ.get("WIKI_CUSTOM_TEMPLATES_PATH", "/config/templates/"))
 
 WSGI_APPLICATION = 'the_wiki.wsgi.application'
 

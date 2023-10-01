@@ -12,6 +12,10 @@ services:
       WIKI_ADMIN_PASSWORD: admin
       # If set, will put auth in front of the entire wiki
       WIKI_AUTH_EVERYWHERE: "true"
+      # WIKI_SECRET_KEY: "some-super-secret-keu"
+      WIKI_DEBUG: "false"
+      WIKI_LANGUAGE_CODE: "en-gb"
+      WIKI_TIME_ZONE: "UTC"
       # When set will add the templates path to list of directories to search for templates
       WIKI_CUSTOM_TEMPLATES: "false"
       # Default value is '/config/templates'

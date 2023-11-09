@@ -5,12 +5,18 @@ on:
     branches: [ "master" ]
 
 jobs:
-
-  build:
-
+  build-dev:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag docker-django-wiki-dev:$(date +%s)
+  test:
+    runs-on: docker-django-wiki-dev:$(date +%s)
+    steps:
+      - name: Clone django-wiki repo
+        run: git clone https://github.com/django-wiki/django-wiki /django-wiki
+      - name: Install dependency
+        run: pip3 install hatch
+      - name: Run tests
+        run: cd /django-wiki && hatch run test:all

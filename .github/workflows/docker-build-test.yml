@@ -13,6 +13,7 @@ jobs:
         run: docker build . --file Dockerfile --tag docker-django-wiki-dev:$(date +%s)
       - name: Run django-wiki tests
         run: |
+          docker build . --file Dockerfile --tag docker-django-wiki-dev:$(date +%s)
           docker run --rm \
               -v $PWD/django-wiki-tests.sh:/tests.sh \
               --entrypoint=bash \

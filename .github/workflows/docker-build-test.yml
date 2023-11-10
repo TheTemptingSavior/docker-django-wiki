@@ -10,12 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag docker-django-wiki-dev:$(date +%s)
+        run: docker build . --file Dockerfile --tag docker-django-wiki:dev
       - name: Run django-wiki tests
         run: |
-          docker build . --file Dockerfile --tag docker-django-wiki-dev:$(date +%s)
           docker run --rm \
               -v $PWD/django-wiki-tests.sh:/tests.sh \
               --entrypoint=bash \
-              docker-django-wiki-dev:$(date +%s) \
+              docker-django-wiki:dev \
               bash /tests.sh 

@@ -13,7 +13,8 @@ jobs:
         run: docker build . --file Dockerfile --tag docker-django-wiki-dev:$(date +%s)
       - name: Run django-wiki tests
         run: |
-          echo "git clone https://github.com/django-wiki/django-wiki /django-wiki" > ./tests.sh
-          echo "pip3 install hatch" >> ./tests.sh
-          echo "cd /django-wiki && hatch run test:all" >> ./tests.sh
-          docker run --rm -it -v $PWD/tests.sh:/tests.sh --entrypoint=bash docker-django-wiki-dev:$(date +%s) bash /tests.sh 
+          docker run --rm -it \
+              -v $PWD/django-wiki-tests.sh:/tests.sh \
+              --entrypoint=bash \
+              docker-django-wiki-dev:$(date +%s) \
+              bash /tests.sh 

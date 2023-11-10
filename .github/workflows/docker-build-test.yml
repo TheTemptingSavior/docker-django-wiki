@@ -5,12 +5,16 @@ on:
     branches: [ "master" ]
 
 jobs:
-
-  build:
-
+  build-dev:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag docker-django-wiki:dev
+      - name: Run django-wiki tests
+        run: |
+          docker run --rm \
+              -v $PWD/django-wiki-tests.sh:/tests.sh \
+              --entrypoint=bash \
+              docker-django-wiki:dev \
+              tests.sh 

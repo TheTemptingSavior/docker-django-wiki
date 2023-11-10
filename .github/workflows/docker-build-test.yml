@@ -17,4 +17,4 @@ jobs:
               -v $PWD/django-wiki-tests.sh:/tests.sh \
               --entrypoint=bash \
               docker-django-wiki:dev \
-              bash /tests.sh 
+              tests.sh 

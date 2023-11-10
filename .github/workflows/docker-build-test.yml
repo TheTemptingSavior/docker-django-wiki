@@ -11,12 +11,9 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag docker-django-wiki-dev:$(date +%s)
-  test:
-    runs-on: docker-django-wiki-dev:$(date +%s)
-    steps:
-      - name: Clone django-wiki repo
-        run: git clone https://github.com/django-wiki/django-wiki /django-wiki
-      - name: Install dependency
-        run: pip3 install hatch
-      - name: Run tests
-        run: cd /django-wiki && hatch run test:all
+      - name: Run django-wiki tests
+        run: |
+          echo "git clone https://github.com/django-wiki/django-wiki /django-wiki" > ./tests.sh
+          echo "pip3 install hatch" >> ./tests.sh
+          echo "cd /django-wiki && hatch run test:all" >> ./tests.sh
+          docker run --rm -it -v $PWD/tests.sh:/tests.sh --entrypoint=bash docker-django-wiki-dev:$(date +%s) bash /tests.sh 

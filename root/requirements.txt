@@ -10,7 +10,7 @@ Markdown==3.3.7
 Pillow==10.0.1
 psycopg2-binary==2.9.9
 six==1.16.0
-sorl-thumbnail==12.9.0
+sorl-thumbnail==12.10.0
 sqlparse==0.4.4
 tinycss2==1.1.1
 typing_extensions==4.8.0

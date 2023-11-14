@@ -1,0 +1,17 @@
+{% load i18n %}
+
+<div style="max-height: 300px; overflow: auto;">
+    <p>
+        Existing tags on this article:<br />
+        {% for tag in form.instance.tags.all %}
+        <span class="badge badge-secondary">{{ tag }}</span>
+        {% endfor %}
+    </p>
+</div>
+<hr />
+<h4>{% trans "Manage Tags" %}</h4>
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Add">
+</form>

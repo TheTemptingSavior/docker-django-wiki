@@ -41,8 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # my apps
-    'the_help',
     # wiki apps
     'django.contrib.sites.apps.SitesConfig',
     'django.contrib.humanize.apps.HumanizeConfig',
@@ -59,6 +57,13 @@ INSTALLED_APPS = [
     'wiki.plugins.globalhistory.apps.GlobalHistoryConfig',
     'wiki.plugins.links.apps.LinksConfig',
     'wiki.plugins.help.apps.HelpConfig',
+    # 3rd party apps
+    'django_extensions',
+    'taggit',
+    'taggit_helpers',
+    # my apps
+    'the_help',
+    'article_tags'
 ]
 
 MIDDLEWARE = [
@@ -131,6 +136,10 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# Taggit
+TAGGIT_CASE_INSENSITIVE = True
+TAGGIT_STRIP_UNICODE_WHEN_SLUGIFYING = True
 
 
 # Internationalization

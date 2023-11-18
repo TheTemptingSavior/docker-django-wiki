@@ -1,17 +1,28 @@
 {% load i18n %}
 
-<div style="max-height: 300px; overflow: auto;">
-    <p>
-        Existing tags on this article:<br />
+<p>
+    Existing tags on this article:<br />
+    {% if form.instance and form.instance.id %}
         {% for tag in form.instance.tags.all %}
         <span class="badge badge-secondary">{{ tag }}</span>
+        {% empty %}
+        <small>No tags present on this article</small>
         {% endfor %}
-    </p>
-</div>
+    {% else %}
+        <small>No tags present on this article</small>
+    {% endif %}
+</p>
 <hr />
-<h4>{% trans "Manage Tags" %}</h4>
+<h4>
+    {% trans "Manage Tags" %}
+    &nbsp;
+    <a href="{% url 'admin:taggit_tag_changelist' %}" style="cursor: pointer; float: right">
+        <i class="fa fa-link"></i>
+    </a>
+</h4>
 <form method="POST">
     {% csrf_token %}
-    {{ form.as_p }}
+    {{ form.as_div }}
+    <hr />
     <input type="submit" value="Add">
 </form>

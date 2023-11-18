@@ -8,8 +8,18 @@ from .models import TagsOnArticle
 
 class SidebarForm(PluginSidebarFormMixin):
     # new_tag = forms.CharField(required=False)
-    add_tag = forms.ModelChoiceField(label="Add tags", queryset=Tag.objects.order_by("slug").all())
-    remove_tag = forms.ModelChoiceField(label="Remove tags", queryset=None)
+    add_tag = forms.ModelChoiceField(
+        label="Add tags",
+        queryset=Tag.objects.order_by("slug").all(),
+        required=False,
+        help_text="Select a tag to add to this article"
+    )
+    remove_tag = forms.ModelChoiceField(
+        label="Remove tags",
+        queryset=None,
+        required=False,
+        help_text="Select a tag to remove from this article"
+    )
 
     def __init__(self, article, request, *args, **kwargs):
         self.article = article
@@ -20,8 +30,13 @@ class SidebarForm(PluginSidebarFormMixin):
             kwargs["instance"] = existing_instance if existing_instance else TagsOnArticle(article=self.article)
 
         super().__init__(*args, **kwargs)
-        self.fields["add_tag"].required = False
-        self.fields["remove_tag"].queryset = self.instance.tags.order_by("slug").all()
+
+        # Only grab and updated remove tag queryset if our instance has an ID
+        if self.instance.id:
+            self.fields["remove_tag"].queryset = self.instance.tags.order_by("slug").all()
+        else:
+            # HACK: We must provide a queryset, so create a query set that will always have 0 entries
+            self.fields["remove_tag"].queryset = Tag.objects.filter(name__isnull=True).all()
 
     def _update_tags(self, instance):
         if self.cleaned_data["add_tag"]:
@@ -30,10 +45,11 @@ class SidebarForm(PluginSidebarFormMixin):
             instance.tags.remove(self.cleaned_data["remove_tag"])
 
     def save(self, *args, **kwargs):
-        # TODO: Probably need some fancy logic here to handle first saving the new tag then adding it to our form
         if not self.instance.id:
             tags_on_article = TagsOnArticle(article=self.article)
             tags_on_article.article_revision = self.article.current_revision
+            # Must save the article before we can access the tags property
+            tags_on_article.save(*args, **kwargs)
             self._update_tags(tags_on_article)
             tags_on_article.save(*args, **kwargs)
             return tags_on_article

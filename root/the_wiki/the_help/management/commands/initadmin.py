@@ -23,4 +23,3 @@ class Command(BaseCommand):
         new_admin.is_active = True
         new_admin.save()
         self.stdout.write("New admin user created!")
-

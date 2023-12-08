@@ -30,7 +30,7 @@ DEBUG = os.environ.get("WIKI_DEBUG", "false").lower() != "false"
 ALLOWED_HOSTS = ["*"]
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-
+INTERNAL_IPS = ["127.0.0.1"]
 
 # Application definition
 
@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'sorl.thumbnail',
     'wiki.apps.WikiConfig',
     'wiki.plugins.attachments.apps.AttachmentsConfig',
-    'wiki.plugins.notifications.apps.NotificationsConfig',
     'wiki.plugins.images.apps.ImagesConfig',
     'wiki.plugins.macros.apps.MacrosConfig',
     'wiki.plugins.editsection.apps.EditSectionConfig',
@@ -76,6 +75,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+if DEBUG:
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware",]
 
 if os.environ.get("WIKI_AUTH_EVERYWHERE", False):
     MIDDLEWARE.append("the_wiki.middleware.AuthEverywhereMiddleware")
@@ -85,7 +87,7 @@ ROOT_URLCONF = 'the_wiki.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

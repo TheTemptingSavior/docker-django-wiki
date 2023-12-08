@@ -1,5 +1,3 @@
-from django.urls import include
-from django.urls import re_path
 from django.utils.translation import gettext as _
 
 from wiki.core.plugins import registry

@@ -17,8 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-urlpatterns = [
+from the_wiki import settings
+
+
+# Must be above the other URLs due to the catch all in the wiki URLs
+urlpatterns = [path("__debug__/", include("debug_toolbar.urls"))] if settings.DEBUG else []
+
+
+urlpatterns += [
     path('admin/', admin.site.urls),
     path('notifications/', include('django_nyt.urls')),
-    path('', include('wiki.urls'))
+    path('', include('wiki.urls')),
 ]

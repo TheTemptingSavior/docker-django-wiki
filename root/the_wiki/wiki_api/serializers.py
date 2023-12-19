@@ -98,6 +98,17 @@ class ArticleSerializer(DynamicFieldsModelSerializer):
         }
 
 
+class ArticleHTMLSerializer(serializers.ModelSerializer):
+    html = serializers.SerializerMethodField()
+
+    def get_html(self, obj: Article):
+        return obj.render(user=self.context["request"].user)
+
+    class Meta:
+        model = Article
+        fields = ["html"]
+
+
 class URLSerializer(DynamicFieldsModelSerializer):
     article = ArticleSerializer(read_only=True, fields=['id', 'url', 'created', 'modified'])
     url = serializers.HyperlinkedIdentityField(view_name=f'{WikiApiConfig.name}:urlpaths-detail')

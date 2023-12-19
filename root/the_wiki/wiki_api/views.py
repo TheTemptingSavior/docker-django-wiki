@@ -51,9 +51,13 @@ class ArticleRevisionViewSet(viewsets.ViewSet):
 
 
 class URLViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    
     def list(self, request):
         queryset = URLPath.objects.all()
-        serializer = URLSerializer(queryset, many=True, context={'request': request})
+        serializer = URLSerializer(
+            queryset, many=True, context={'request': request}, fields=['id', 'url', 'article', 'slug', 'level', 'parent']
+        )
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):

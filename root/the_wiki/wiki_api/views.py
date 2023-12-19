@@ -37,6 +37,14 @@ class ArticleViewSet(viewsets.ViewSet):
         serializer = ArticleSerializer(article, many=False, context={'request': request})
         return Response(serializer.data)
 
+    def create(self, request):
+        # TODO: Implement a create method using URLPath.create_urlpath function
+        pass
+
+    def update(self, request, pk=None):
+        # TODO: Should create a new revision on an article
+        pass
+
     @action(detail=True, methods=["GET"], name="Get HTML")
     def html(self, request, pk=None, *args, **kwargs):
         article = get_object_or_404(Article.objects.all(), pk=pk)

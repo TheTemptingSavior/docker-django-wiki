@@ -1,11 +1,14 @@
 from django.contrib.auth.models import Group, User
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from wiki.models.article import Article, ArticleRevision
 from wiki.models.urlpath import URLPath
 
-from .serializers import ArticleSerializer, ArticleRevisionSerializer, GroupSerializer, URLSerializer, UserSerializer
+from .serializers import (
+    ArticleSerializer, ArticleHTMLSerializer, ArticleRevisionSerializer, GroupSerializer, URLSerializer, UserSerializer
+)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -34,6 +37,12 @@ class ArticleViewSet(viewsets.ViewSet):
         serializer = ArticleSerializer(article, many=False, context={'request': request})
         return Response(serializer.data)
 
+    @action(detail=True, methods=["GET"], name="Get HTML")
+    def html(self, request, pk=None, *args, **kwargs):
+        article = get_object_or_404(Article.objects.all(), pk=pk)
+        serializer = ArticleHTMLSerializer(article, many=False, context={"request": request})
+        return Response(serializer.data)
+
 
 class ArticleRevisionViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
@@ -52,7 +61,7 @@ class ArticleRevisionViewSet(viewsets.ViewSet):
 
 class URLViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def list(self, request):
         queryset = URLPath.objects.all()
         serializer = URLSerializer(

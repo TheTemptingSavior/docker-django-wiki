@@ -17,9 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-urlpatterns = [
-    path("api/", include(("wiki_api.urls", "wiki_api"))),
-    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+from the_wiki import settings
+
+
+urlpatterns = []
+
+if settings.WIKI_API_ENABLED:
+    urlpatterns += [
+        path("api/", include(("wiki_api.urls", "wiki_api"))),
+        path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    ]
+
+urlpatterns += [
     path("admin/", admin.site.urls),
     path("notifications/", include("django_nyt.urls")),
     path("", include("wiki.urls"))

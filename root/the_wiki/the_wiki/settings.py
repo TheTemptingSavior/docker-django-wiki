@@ -58,12 +58,23 @@ INSTALLED_APPS = [
     "wiki.plugins.links.apps.LinksConfig",
     "wiki.plugins.help.apps.HelpConfig",
     # 3rd party
+<<<<<<< HEAD
     "rest_framework",
     "django_extensions",
     # my apps
     "the_help",
     "wiki_api",
+=======
+    'django_extensions',
+    # my apps
+    'the_help',
+>>>>>>> 73ac385 (place api behind environment variable)
 ]
+
+WIKI_API_ENABLED = False
+if os.environ.get("WIKI_API_ENABLED", "false").lower() == "true":
+    WIKI_API_ENABLED = True
+    INSTALLED_APPS += ["rest_framework", "wiki_api"]
 
 MIDDLEWARE = [
     "the_wiki.middleware.HealthCheckMiddleware",
@@ -76,7 +87,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-if os.environ.get("WIKI_AUTH_EVERYWHERE", False):
+if os.environ.get("WIKI_AUTH_EVERYWHERE", "false").lower() == "true":
     MIDDLEWARE.append("the_wiki.middleware.AuthEverywhereMiddleware")
 
 ROOT_URLCONF = "the_wiki.urls"

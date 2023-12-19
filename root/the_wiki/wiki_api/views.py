@@ -39,13 +39,13 @@ class ArticleViewSet(viewsets.ViewSet):
 
 
 class ArticleRevisionViewSet(viewsets.ViewSet):
-    def list(self, request):
-        queryset = ArticleRevision.objects.all()
+    def list(self, request, articles_pk=None):
+        queryset = ArticleRevision.objects.filter(article_id=articles_pk).all()
         serializer = ArticleRevisionSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
-    def retrieve(self, request, pk=None):
-        queryset = ArticleRevision.objects.all()
+    def retrieve(self, request, articles_pk=None, pk=None):
+        queryset = ArticleRevision.objects.filter(article_id=articles_pk).all()
         article = get_object_or_404(queryset, pk=pk)
         serializer = ArticleRevisionSerializer(article, many=False, context={'request': request})
         return Response(serializer.data)

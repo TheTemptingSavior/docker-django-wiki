@@ -41,8 +41,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # my apps
-    "the_help",
     # wiki apps
     "django.contrib.sites.apps.SitesConfig",
     "django.contrib.humanize.apps.HumanizeConfig",
@@ -59,6 +57,12 @@ INSTALLED_APPS = [
     "wiki.plugins.globalhistory.apps.GlobalHistoryConfig",
     "wiki.plugins.links.apps.LinksConfig",
     "wiki.plugins.help.apps.HelpConfig",
+    # 3rd party
+    "rest_framework",
+    "django_extensions",
+    # my apps
+    "the_help",
+    "wiki_api",
 ]
 
 MIDDLEWARE = [
@@ -160,6 +164,13 @@ WIKI_ACCOUNT_SIGNUP_ALLOWED = False
 USE_SENDFILE = True
 LOOKUP_LEVEL = 3
 LOGIN_REDIRECT_URL = reverse_lazy("wiki:get", kwargs={"path": ""})
+
+# Rest Framework
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
+}
+
 
 try:
     # Attempt to load any extra configuration the user may have provided

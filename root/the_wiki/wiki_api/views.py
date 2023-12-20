@@ -1,13 +1,20 @@
 from django.contrib.auth.models import Group, User
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, viewsets
+from django.utils.text import slugify
+from rest_framework import permissions, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from wiki.models.article import Article, ArticleRevision
 from wiki.models.urlpath import URLPath
 
 from .serializers import (
-    ArticleSerializer, ArticleHTMLSerializer, ArticleRevisionSerializer, GroupSerializer, URLSerializer, UserSerializer
+    ArticleSerializer,
+    ArticleHTMLSerializer,
+    ArticleRevisionSerializer,
+    GroupSerializer,
+    NewArticleSerializer,
+    URLSerializer,
+    UserSerializer
 )
 
 
@@ -38,8 +45,42 @@ class ArticleViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        # TODO: Implement a create method using URLPath.create_urlpath function
-        pass
+        serialized_data = NewArticleSerializer(data=request.data)
+
+        if not serialized_data.is_valid():
+            return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data = serialized_data.data
+
+        # Find the parent URLPath object - or None if this is a root article
+        parent_url = get_object_or_404(URLPath, pk=validated_data["parent"]) if validated_data["parent"] else None
+        if "slug" in validated_data:
+            slug = slugify(validated_data["title"]) if not validated_data["slug"] else validated_data["slug"]
+        else:
+            slug = slugify(validated_data["title"])
+
+        new_urlpath = URLPath.create_urlpath(
+            parent=parent_url,
+            slug=slug,
+            title=validated_data["title"],
+            article_kwargs={
+                "owner": request.user,
+                "group": validated_data["permissions"]["group"],
+                "group_read": validated_data["permissions"]["group_read"],
+                "group_write": validated_data["permissions"]["group_write"],
+                "other_read": validated_data["permissions"]["other_read"],
+                "other_write": validated_data["permissions"]["other_write"],
+            },
+            request=request,
+            article_w_permissions=None,
+            content=validated_data["content"],
+            user_message=validated_data["summary"],
+            user=request.user,
+            ip_address=None,
+        )
+
+        new_article = ArticleSerializer(new_urlpath.article, context={"request": request}).data
+        return Response(new_article, status=status.HTTP_201_CREATED)
 
     def update(self, request, pk=None):
         # TODO: Should create a new revision on an article

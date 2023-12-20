@@ -127,3 +127,22 @@ class URLSerializer(DynamicFieldsModelSerializer):
         extra_kwargs = {
             'url': {'view_name': f'{WikiApiConfig.name}:urlpaths-detail'},
         }
+
+
+class PermissionSerializer(serializers.Serializer):
+    group = serializers.CharField(allow_blank=True, allow_null=True)
+    group_read = serializers.BooleanField(default=True)
+    group_write = serializers.BooleanField(default=True)
+    other_read = serializers.BooleanField(default=True)
+    other_write = serializers.BooleanField(default=True)
+
+
+class NewArticleSerializer(serializers.Serializer):
+    parent = serializers.IntegerField(allow_null=True)
+    title = serializers.CharField(max_length=200, allow_null=False, allow_blank=False)
+    slug = serializers.SlugField(allow_unicode=False, required=False)
+    content = serializers.CharField(allow_blank=True)
+    summary = serializers.CharField(required=False, max_length=255)
+    permissions = PermissionSerializer()
+
+

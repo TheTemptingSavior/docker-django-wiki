@@ -143,6 +143,6 @@ class NewArticleSerializer(serializers.Serializer):
     slug = serializers.SlugField(allow_unicode=False, required=False)
     content = serializers.CharField(allow_blank=True)
     summary = serializers.CharField(required=False, max_length=255)
-    permissions = PermissionSerializer()
+    permissions = PermissionSerializer(required=False)
 
 

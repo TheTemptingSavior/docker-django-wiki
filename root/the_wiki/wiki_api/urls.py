@@ -10,6 +10,8 @@ app_name = WikiApiConfig.name
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
+# Basename is a required argument here because these viewsets inherit the default ViewSet class - not a model specific
+# one
 router.register(r'articles', views.ArticleViewSet, basename='articles')
 router.register(r'urls', views.URLViewSet, basename='urlpaths')
 

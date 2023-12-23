@@ -4,6 +4,7 @@ from django.utils.text import slugify
 from rest_framework import permissions, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from typing import Optional
 from wiki.models.article import Article, ArticleRevision
 from wiki.models.urlpath import URLPath
 
@@ -16,6 +17,7 @@ from .serializers import (
     URLSerializer,
     UserSerializer
 )
+from .types import CreateArticleBody, CreateArticleBodyPermission
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -45,31 +47,40 @@ class ArticleViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        serialized_data = NewArticleSerializer(data=request.data)
+        serialized_data: NewArticleSerializer = NewArticleSerializer(data=request.data)
 
         if not serialized_data.is_valid():
             return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        validated_data = serialized_data.data
+        validated_data: CreateArticleBody = serialized_data.data
+        validated_permissions: CreateArticleBodyPermission = validated_data.get(
+            "permissions",
+            {"group": None, "group_read": True, "group_write": True, "other_read": True, "other_write": True}
+        )
 
         # Find the parent URLPath object - or None if this is a root article
-        parent_url = get_object_or_404(URLPath, pk=validated_data["parent"]) if validated_data["parent"] else None
-        if "slug" in validated_data:
-            slug = slugify(validated_data["title"]) if not validated_data["slug"] else validated_data["slug"]
-        else:
-            slug = slugify(validated_data["title"])
+        parent_url: Optional[URLPath] = (
+            get_object_or_404(URLPath, pk=validated_data["parent"])
+            if validated_data["parent"] else None
+        )
 
-        new_urlpath = URLPath.create_urlpath(
+        # May or may not have been provided a slug - and it could also be empty
+        if "slug" in validated_data:
+            slug: str = slugify(validated_data["title"]) if not validated_data["slug"] else validated_data["slug"]
+        else:
+            slug: str = slugify(validated_data["title"])
+
+        new_urlpath: URLPath = URLPath.create_urlpath(
             parent=parent_url,
             slug=slug,
             title=validated_data["title"],
             article_kwargs={
                 "owner": request.user,
-                "group": validated_data["permissions"]["group"],
-                "group_read": validated_data["permissions"]["group_read"],
-                "group_write": validated_data["permissions"]["group_write"],
-                "other_read": validated_data["permissions"]["other_read"],
-                "other_write": validated_data["permissions"]["other_write"],
+                "group": validated_permissions["group"],
+                "group_read": validated_permissions["group_read"],
+                "group_write": validated_permissions["group_write"],
+                "other_read": validated_permissions["other_read"],
+                "other_write": validated_permissions["other_write"],
             },
             request=request,
             article_w_permissions=None,
@@ -79,6 +90,7 @@ class ArticleViewSet(viewsets.ViewSet):
             ip_address=None,
         )
 
+        # Grab the article data we just created and return this instead of the URLPath
         new_article = ArticleSerializer(new_urlpath.article, context={"request": request}).data
         return Response(new_article, status=status.HTTP_201_CREATED)
 

@@ -7,15 +7,18 @@ from rest_framework.response import Response
 from typing import Optional
 from wiki.models.article import Article, ArticleRevision
 from wiki.models.urlpath import URLPath
+from wiki.plugins.attachments.models import Attachment, AttachmentRevision
 
 from .serializers import (
     ArticleSerializer,
     ArticleHTMLSerializer,
     ArticleRevisionSerializer,
+    AttachmentSerializer,
     GroupSerializer,
     NewArticleSerializer,
     URLSerializer,
-    UserSerializer, NewRevisionSerializer
+    UserSerializer,
+    NewRevisionSerializer, AttachmentRevisionSerializer
 )
 from .types import CreateArticleBody, CreateArticleBodyPermission, CreateRevisionBody
 
@@ -139,13 +142,51 @@ class ArticleRevisionViewSet(viewsets.ViewSet):
         return Response(article_data.data, status=status.HTTP_201_CREATED)
 
 
+class AttachmentViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def list(self, request, articles_pk=None):
+        queryset = Attachment.objects.filter(article_id=articles_pk).all()
+        serializer = AttachmentSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def retrieve(self, request, articles_pk=None, pk=None):
+        queryset = Attachment.objects.filter(article_id=articles_pk).all()
+        article = get_object_or_404(queryset, pk=pk)
+        serializer = AttachmentSerializer(article, many=False, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['GET'], name='Download')
+    def download(self, request, articles_pk=None, pk=None):
+        # TODO: Implement a download for the current revision of the attachment
+        return Response([])
+
+
+class AttachmentRevisionViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def list(self, request, articles_pk=None, attachments_pk=None):
+        queryset = AttachmentRevision.objects.filter(attachment_id=attachments_pk).all()
+        serializer = AttachmentRevisionSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def retrieve(self, request, articles_pk=None, attachments_pk=None, pk=None):
+        queryset = AttachmentRevision.objects.filter(attachment_id=attachments_pk).all()
+        attachment = get_object_or_404(queryset, pk=pk)
+        serializer = AttachmentRevisionSerializer(attachment, many=False, context={'request': request})
+        return Response(serializer.data)
+
+
 class URLViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request):
         queryset = URLPath.objects.all()
         serializer = URLSerializer(
-            queryset, many=True, context={'request': request}, fields=['id', 'url', 'article', 'slug', 'level', 'parent']
+            queryset,
+            many=True,
+            context={'request': request},
+            fields=['id', 'url', 'article', 'slug', 'level', 'parent']
         )
         return Response(serializer.data)
 

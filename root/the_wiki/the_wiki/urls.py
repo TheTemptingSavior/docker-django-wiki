@@ -22,6 +22,8 @@ from the_wiki import settings
 
 urlpatterns = []
 
+# Any URL that isn't the wiki must be included before the wiki in the list because of the catch all route that
+# django-wiki employs
 if settings.WIKI_API_ENABLED:
     urlpatterns += [
         path("api/", include(("wiki_api.urls", "wiki_api"))),

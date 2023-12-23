@@ -146,3 +146,7 @@ class NewArticleSerializer(serializers.Serializer):
     permissions = PermissionSerializer(required=False)
 
 
+class NewRevisionSerializer(serializers.Serializer):
+    content = serializers.CharField(allow_blank=True, allow_null=True)
+    user_message = serializers.CharField(max_length=255, allow_blank=True, required=False)
+

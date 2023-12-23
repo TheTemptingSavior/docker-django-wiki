@@ -15,9 +15,9 @@ from .serializers import (
     GroupSerializer,
     NewArticleSerializer,
     URLSerializer,
-    UserSerializer
+    UserSerializer, NewRevisionSerializer
 )
-from .types import CreateArticleBody, CreateArticleBodyPermission
+from .types import CreateArticleBody, CreateArticleBodyPermission, CreateRevisionBody
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -118,6 +118,25 @@ class ArticleRevisionViewSet(viewsets.ViewSet):
         article = get_object_or_404(queryset, pk=pk)
         serializer = ArticleRevisionSerializer(article, many=False, context={'request': request})
         return Response(serializer.data)
+
+    def create(self, request, articles_pk=None):
+        current_article: Article = get_object_or_404(Article, pk=articles_pk)
+
+        serialized_data: NewRevisionSerializer = NewRevisionSerializer(data=request.data)
+        if not serialized_data.is_valid():
+            return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data: CreateRevisionBody = serialized_data.data
+        new_revision = ArticleRevision(
+            article_id=current_article.id,
+            content=validated_data["content"],
+            user=self.request.user,
+            user_message=validated_data.get("user_message", "")
+        )
+
+        current_article.add_revision(new_revision)
+        article_data = ArticleSerializer(data=current_article, many=False, context={"request": request})
+        return Response(article_data.data, status=status.HTTP_201_CREATED)
 
 
 class URLViewSet(viewsets.ViewSet):

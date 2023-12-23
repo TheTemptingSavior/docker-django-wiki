@@ -25,3 +25,9 @@ CreateArticleBody = TypedDict(
     },
     total=False
 )
+
+CreateRevisionBody = TypedDict(
+    "CreateRevisionBody",
+    {"content": str, "user_message": Optional[str]},
+    total=False
+)

@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse, reverse_lazy
 from wiki.models.article import Article, ArticleRevision
 from wiki.models.urlpath import URLPath
+from wiki.plugins.attachments.models import Attachment, AttachmentRevision
 
 from .apps import WikiApiConfig
 
@@ -17,6 +18,10 @@ class ParameterisedHyperlinkedIdentityField(serializers.HyperlinkedIdentityField
     def get_url(self, obj, view_name, request, format):
         kwargs = {}
         for model_field, url_param in self.lookup_fields:
+            if not model_field:
+                kwargs[url_param] = None
+                continue
+
             attr = obj
             for field in model_field.split('.'):
                 attr = getattr(attr, field)
@@ -72,10 +77,44 @@ class ArticleRevisionSerializer(DynamicFieldsModelSerializer):
         extra_kwargs = {'url': {'view_name': f'{WikiApiConfig.name}:articlerevisions-detail'}}
 
 
+class AttachmentRevisionSerializer(DynamicFieldsModelSerializer):
+    url = ParameterisedHyperlinkedIdentityField(
+        view_name=f'{WikiApiConfig.name}:attachmentrevisions-detail',
+        lookup_fields=((None, 'articles_pk'), ('attachment.id', 'attachments_pk'), ('id', 'pk')),
+        read_only=True
+    )
+
+    class Meta:
+        model = AttachmentRevision
+        fields = '__all__'
+        extra_kwargs = {'url': {'view_name': f'{WikiApiConfig.name}:attachmentrevisions-detail'}}
+
+
+class AttachmentSerializer(DynamicFieldsModelSerializer):
+    url = ParameterisedHyperlinkedIdentityField(
+        view_name=f'{WikiApiConfig.name}:attachments-detail',
+        lookup_fields=(('article.id', 'articles_pk'), ('id', 'pk')),
+        read_only=True
+    )
+    current_revision = AttachmentRevisionSerializer(
+        read_only=True, many=False, fields=['id', 'revision_number', 'description', 'url']
+    )
+
+    class Meta:
+        model = Attachment
+        fields = '__all__'
+        extra_kwargs = {
+            'url': {'view_name': f'{WikiApiConfig.name}:attachments-detail'}
+        }
+
+
 class ArticleSerializer(DynamicFieldsModelSerializer):
     owner = UserSerializer(read_only=True, fields=['id', 'url', 'username'])
     current_revision = ArticleRevisionSerializer(
         read_only=True, allow_null=True, fields=['id', 'url', 'title', 'revision_number', 'previous_revision']
+    )
+    attachments = AttachmentSerializer(
+        read_only=True, many=True, fields=['id', 'url', 'original_filename', 'current_revision'], allow_null=True
     )
 
     class Meta:
@@ -92,6 +131,7 @@ class ArticleSerializer(DynamicFieldsModelSerializer):
             'owner',
             'group',
             'current_revision',
+            'attachments',
         ]
         extra_kwargs = {
             'url': {'view_name': f'{WikiApiConfig.name}:articles-detail'},
@@ -129,6 +169,9 @@ class URLSerializer(DynamicFieldsModelSerializer):
         }
 
 
+# ###
+# ### Serializers used for parsing/validating request body content
+# ###
 class PermissionSerializer(serializers.Serializer):
     group = serializers.CharField(allow_blank=True, allow_null=True)
     group_read = serializers.BooleanField(default=True)

@@ -2,8 +2,9 @@ from typing import Optional
 
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, mixins, permissions, status
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from wiki.models import Article, URLPath, ArticleRevision
 
@@ -17,21 +18,19 @@ from wiki_api.serializers import (
 from wiki_api.types import CreateArticleBody, CreateArticleBodyPermission, CreateRevisionBody
 
 
-class ArticleViewSet(viewsets.ViewSet):
+class ArticleViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = Article.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ArticleSerializer
+    pagination_class = PageNumberPagination
 
-    def list(self, request):
-        queryset = Article.objects.all()
-        serializer = ArticleSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk=None):
-        queryset = Article.objects.all()
-        article = get_object_or_404(queryset, pk=pk)
-        serializer = ArticleSerializer(article, many=False, context={'request': request})
-        return Response(serializer.data)
-
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serialized_data: NewArticleSerializer = NewArticleSerializer(data=request.data)
 
         if not serialized_data.is_valid():
@@ -90,21 +89,24 @@ class ArticleViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-class ArticleRevisionViewSet(viewsets.ViewSet):
+class ArticleRevisionViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = ArticleRevisionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def list(self, request, articles_pk=None):
-        queryset = ArticleRevision.objects.filter(article_id=articles_pk).all()
-        serializer = ArticleRevisionSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+    def get_queryset(self):
+        queryset = ArticleRevision.objects.all()
+        pk = self.kwargs.get("articles_pk")
+        if pk:
+            queryset = queryset.filter(article_id=pk)
 
-    def retrieve(self, request, articles_pk=None, pk=None):
-        queryset = ArticleRevision.objects.filter(article_id=articles_pk).all()
-        article = get_object_or_404(queryset, pk=pk)
-        serializer = ArticleRevisionSerializer(article, many=False, context={'request': request})
-        return Response(serializer.data)
+        return queryset
 
-    def create(self, request, articles_pk=None):
+    def create(self, request, articles_pk=None, *args):
         current_article: Article = get_object_or_404(Article, pk=articles_pk)
 
         serialized_data: NewRevisionSerializer = NewRevisionSerializer(data=request.data)

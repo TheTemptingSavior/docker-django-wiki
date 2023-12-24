@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, permissions
+from rest_framework import mixins, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from wiki.plugins.attachments.models import Attachment, AttachmentRevision
@@ -7,19 +7,17 @@ from wiki.plugins.attachments.models import Attachment, AttachmentRevision
 from wiki_api.serializers import AttachmentSerializer, AttachmentRevisionSerializer
 
 
-class AttachmentViewSet(viewsets.ViewSet):
+class AttachmentViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AttachmentSerializer
 
-    def list(self, request, articles_pk=None):
-        queryset = Attachment.objects.filter(article_id=articles_pk).all()
-        serializer = AttachmentSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+    def get_queryset(self):
+        queryset = Attachment.objects.all()
+        article_id = self.kwargs.get("articles_pk")
+        if article_id:
+            queryset = queryset.filter(article_id=article_id)
 
-    def retrieve(self, request, articles_pk=None, pk=None):
-        queryset = Attachment.objects.filter(article_id=articles_pk).all()
-        article = get_object_or_404(queryset, pk=pk)
-        serializer = AttachmentSerializer(article, many=False, context={'request': request})
-        return Response(serializer.data)
+        return queryset
 
     @action(detail=True, methods=['GET'], name='Download')
     def download(self, request, articles_pk=None, pk=None):
@@ -27,16 +25,14 @@ class AttachmentViewSet(viewsets.ViewSet):
         return Response([])
 
 
-class AttachmentRevisionViewSet(viewsets.ViewSet):
+class AttachmentRevisionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AttachmentRevisionSerializer
 
-    def list(self, request, articles_pk=None, attachments_pk=None):
-        queryset = AttachmentRevision.objects.filter(attachment_id=attachments_pk).all()
-        serializer = AttachmentRevisionSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+    def get_queryset(self):
+        queryset = AttachmentRevision.objects.all()
+        attachment_id = self.kwargs.get("attachments_pk")
+        if attachment_id:
+            queryset = queryset.filter(attachment_id=attachment_id)
 
-    def retrieve(self, request, articles_pk=None, attachments_pk=None, pk=None):
-        queryset = AttachmentRevision.objects.filter(attachment_id=attachments_pk).all()
-        attachment = get_object_or_404(queryset, pk=pk)
-        serializer = AttachmentRevisionSerializer(attachment, many=False, context={'request': request})
-        return Response(serializer.data)
+        return queryset

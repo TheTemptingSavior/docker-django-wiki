@@ -30,6 +30,18 @@ class ArticleViewSet(
     serializer_class = ArticleSerializer
     pagination_class = PageNumberPagination
 
+    def list(self, request, *args, **kwargs):
+        """
+        Override the list method so that we can reduce the number of fields that are returned.
+        """
+        serializer = ArticleSerializer(
+            self.queryset,
+            many=True,
+            context={'request': request},
+            fields=['id', 'url', 'current_revision']
+        )
+        return Response(serializer.data)
+
     def create(self, request, *args, **kwargs):
         serialized_data: NewArticleSerializer = NewArticleSerializer(data=request.data)
 
@@ -78,9 +90,24 @@ class ArticleViewSet(
         new_article = ArticleSerializer(new_urlpath.article, context={"request": request}).data
         return Response(new_article, status=status.HTTP_201_CREATED)
 
-    def update(self, request, pk=None):
+    def update(self, request, pk=None, *args, **kwargs):
         # TODO: Should create a new revision on an article
-        pass
+        article = get_object_or_404(Article, pk=pk)
+
+        serialized_data: NewRevisionSerializer = NewRevisionSerializer(data=request.data)
+        if not serialized_data.is_valid():
+            return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data: CreateRevisionBody = serialized_data.data
+
+        new_revision = ArticleRevision()
+        new_revision.article = article
+        new_revision.content = validated_data["content"].strip()
+        new_revision.title = validated_data.get("title", article.current_revision.title)
+        new_revision.user_message = validated_data.get("user_message")
+        new_revision.set_from_request(request)
+
+        article.add_revision(new_revision)
 
     @action(detail=True, methods=["GET"], name="Get HTML")
     def html(self, request, pk=None, *args, **kwargs):

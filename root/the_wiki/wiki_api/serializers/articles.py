@@ -4,6 +4,7 @@ from wiki.models import ArticleRevision, Article
 from wiki_api.apps import WikiApiConfig
 from wiki_api.serializers import DynamicFieldsModelSerializer, ParameterisedHyperlinkedIdentityField
 from wiki_api.serializers.attachments import AttachmentSerializer
+from wiki_api.serializers.groups import GroupSerializer
 from wiki_api.serializers.users import UserSerializer
 
 
@@ -13,6 +14,7 @@ class ArticleRevisionSerializer(DynamicFieldsModelSerializer):
         lookup_fields=(('article.id', 'articles_pk'), ('id', 'pk')),
         read_only=True
     )
+    user = UserSerializer(read_only=True, fields=['id', 'url', 'username'])
 
     class Meta:
         model = ArticleRevision
@@ -22,6 +24,7 @@ class ArticleRevisionSerializer(DynamicFieldsModelSerializer):
 
 class ArticleSerializer(DynamicFieldsModelSerializer):
     owner = UserSerializer(read_only=True, fields=['id', 'url', 'username'])
+    group = GroupSerializer(read_only=True)
     current_revision = ArticleRevisionSerializer(
         read_only=True, allow_null=True, fields=['id', 'url', 'title', 'revision_number', 'previous_revision']
     )
@@ -79,6 +82,7 @@ class NewArticleSerializer(serializers.Serializer):
 
 
 class NewRevisionSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=255, allow_blank=False)
     content = serializers.CharField(allow_blank=True, allow_null=True)
     user_message = serializers.CharField(max_length=255, allow_blank=True, required=False)
 

@@ -9,6 +9,9 @@ from wiki_api.renderers import PassthroughRenderer
 from wiki_api.serializers import AttachmentSerializer, AttachmentRevisionSerializer
 
 
+# TODO: Disable all attachment related functionality when app is not enabled
+
+
 class AttachmentViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = AttachmentSerializer

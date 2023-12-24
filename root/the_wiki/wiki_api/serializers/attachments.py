@@ -1,7 +1,7 @@
 from wiki.plugins.attachments.models import AttachmentRevision, Attachment
 
 from wiki_api.apps import WikiApiConfig
-from wiki_api.serializers import DynamicFieldsModelSerializer, ParameterisedHyperlinkedIdentityField
+from wiki_api.serializers import DynamicFieldsModelSerializer, ParameterisedHyperlinkedIdentityField, UserSerializer
 
 
 class AttachmentRevisionSerializer(DynamicFieldsModelSerializer):
@@ -10,6 +10,7 @@ class AttachmentRevisionSerializer(DynamicFieldsModelSerializer):
         lookup_fields=((None, 'articles_pk'), ('attachment.id', 'attachments_pk'), ('id', 'pk')),
         read_only=True
     )
+    user = UserSerializer(read_only=True, fields=['id', 'url', 'username'])
 
     class Meta:
         model = AttachmentRevision

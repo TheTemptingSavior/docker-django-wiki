@@ -1,5 +1,7 @@
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.text import slugify
 from rest_framework import serializers
-from wiki.models import ArticleRevision, Article
+from wiki.models import ArticleRevision, Article, URLPath
 
 from wiki_api.apps import WikiApiConfig
 from wiki_api.serializers import DynamicFieldsModelSerializer, ParameterisedHyperlinkedIdentityField
@@ -74,11 +76,27 @@ class PermissionSerializer(serializers.Serializer):
 
 class NewArticleSerializer(serializers.Serializer):
     parent = serializers.IntegerField(allow_null=True)
-    title = serializers.CharField(max_length=200, allow_null=False, allow_blank=False)
-    slug = serializers.SlugField(allow_unicode=False, required=False)
+    title = serializers.CharField(max_length=200, allow_null=False, allow_blank=False, required=True)
+    slug = serializers.SlugField(allow_unicode=False, required=False, allow_blank=True, allow_null=True, max_length=50)
     content = serializers.CharField(allow_blank=True)
     summary = serializers.CharField(required=False, max_length=255)
     permissions = PermissionSerializer(required=False)
+
+    def validate(self, data):
+        if not data.get("slug"):
+            data["slug"] = slugify(data["title"])
+
+        existing = (
+            URLPath.objects
+            .filter(
+                parent_id=data["parent"], slug=data["slug"], site=get_current_site(self.context.get("request"))
+            )
+            .count()
+        )
+        if existing:
+            raise serializers.ValidationError("Article with this slug already exists under this parent URL.")
+
+        return data
 
 
 class NewRevisionSerializer(serializers.Serializer):

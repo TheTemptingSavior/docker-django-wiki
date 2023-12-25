@@ -1,0 +1,202 @@
+- model: wiki.article
+  pk: 1
+  fields:
+    current_revision: 1
+    created: 2023-12-02 12:40:51.581779+00:00
+    modified: 2023-12-02 12:40:51.625611+00:00
+    owner: null
+    group: null
+    group_read: true
+    group_write: true
+    other_read: true
+    other_write: true
+- model: wiki.article
+  pk: 2
+  fields:
+    current_revision: 2
+    created: 2023-12-03 11:31:25.597909+00:00
+    modified: 2023-12-03 11:31:25.607638+00:00
+    owner: 1
+    group: null
+    group_read: true
+    group_write: true
+    other_read: true
+    other_write: true
+- model: wiki.article
+  pk: 3
+  fields:
+    current_revision: 3
+    created: 2023-12-20 18:18:30.235401+00:00
+    modified: 2023-12-20 18:18:30.243357+00:00
+    owner: 1
+    group: null
+    group_read: true
+    group_write: true
+    other_read: true
+    other_write: true
+- model: wiki.article
+  pk: 5
+  fields:
+    current_revision: 5
+    created: 2023-12-20 22:45:00.255950+00:00
+    modified: 2023-12-20 22:45:00.262850+00:00
+    owner: 1
+    group: null
+    group_read: true
+    group_write: true
+    other_read: true
+    other_write: true
+- model: wiki.articleforobject
+  pk: 1
+  fields:
+    article: 1
+    content_type: 21
+    object_id: 1
+    is_mptt: true
+- model: wiki.articleforobject
+  pk: 2
+  fields:
+    article: 2
+    content_type: 21
+    object_id: 2
+    is_mptt: true
+- model: wiki.articleforobject
+  pk: 3
+  fields:
+    article: 3
+    content_type: 21
+    object_id: 3
+    is_mptt: true
+- model: wiki.articlerevision
+  pk: 1
+  fields:
+    revision_number: 1
+    user_message: ''
+    automatic_log: ''
+    ip_address: null
+    user: 1
+    modified: 2023-12-02 12:40:51.595750+00:00
+    created: 2023-12-02 12:40:51.595792+00:00
+    previous_revision: null
+    deleted: false
+    locked: false
+    article: 1
+    content: THIS IS THE ROOOOOOOOT
+    title: My First Article
+- model: wiki.articlerevision
+  pk: 2
+  fields:
+    revision_number: 1
+    user_message: ''
+    automatic_log: ''
+    ip_address: null
+    user: 1
+    modified: 2023-12-03 11:31:25.601455+00:00
+    created: 2023-12-03 11:31:25.601480+00:00
+    previous_revision: null
+    deleted: false
+    locked: false
+    article: 2
+    content: Hello, World!
+    title: Other More Different Article
+- model: wiki.articlerevision
+  pk: 3
+  fields:
+    revision_number: 1
+    user_message: This is a summary
+    automatic_log: ''
+    ip_address: null
+    user: 1
+    modified: 2023-12-20 18:18:30.238834+00:00
+    created: 2023-12-20 18:18:30.238859+00:00
+    previous_revision: null
+    deleted: false
+    locked: false
+    article: 3
+    content: Hello, World!
+    title: Test Article 1
+- model: wiki.articlerevision
+  pk: 5
+  fields:
+    revision_number: 1
+    user_message: API Article Example
+    automatic_log: ''
+    ip_address: null
+    user: 1
+    modified: 2023-12-20 22:45:00.258346+00:00
+    created: 2023-12-20 22:45:00.258362+00:00
+    previous_revision: null
+    deleted: false
+    locked: false
+    article: 5
+    content: "# Hello, World\r\n\r\nThis is an article made with the API"
+    title: Hello, World 2!
+- model: wiki.articleplugin
+  pk: 1
+  fields:
+    article: 1
+    deleted: false
+    created: 2023-12-02 12:41:00.220423+00:00
+- model: wiki.articleplugin
+  pk: 2
+  fields:
+    article: 3
+    deleted: false
+    created: 2023-12-23 14:13:26.444736+00:00
+- model: wiki.articleplugin
+  pk: 3
+  fields:
+    article: 3
+    deleted: false
+    created: 2023-12-23 15:52:33.709942+00:00
+- model: wiki.reusableplugin
+  pk: 2
+  fields:
+    articles:
+    - 2
+    - 3
+- model: wiki.reusableplugin
+  pk: 3
+  fields:
+    articles:
+    - 3
+- model: wiki.simpleplugin
+  pk: 1
+  fields:
+    article_revision: 1
+- model: wiki.urlpath
+  pk: 1
+  fields:
+    article: 1
+    slug: null
+    site: 1
+    parent: null
+    moved_to: null
+    lft: 1
+    rght: 12
+    tree_id: 1
+    level: 0
+- model: wiki.urlpath
+  pk: 2
+  fields:
+    article: 2
+    slug: other-more-different-article
+    site: 1
+    parent: 1
+    moved_to: null
+    lft: 2
+    rght: 3
+    tree_id: 1
+    level: 1
+- model: wiki.urlpath
+  pk: 3
+  fields:
+    article: 3
+    slug: test-article-1
+    site: 1
+    parent: 1
+    moved_to: null
+    lft: 4
+    rght: 7
+    tree_id: 1
+    level: 1

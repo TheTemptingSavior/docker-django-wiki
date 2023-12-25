@@ -5,7 +5,7 @@ from wiki_api.apps import WikiApiConfig
 from wiki_api.serializers import DynamicFieldsModelSerializer, ParameterisedHyperlinkedIdentityField
 from wiki_api.serializers.attachments import AttachmentSerializer
 from wiki_api.serializers.groups import GroupSerializer
-from wiki_api.serializers.users import UserSerializer
+from wiki_api.serializers.users import UserSerializer, USER_MINIMAL_FIELDS
 
 
 class ArticleRevisionSerializer(DynamicFieldsModelSerializer):
@@ -14,7 +14,7 @@ class ArticleRevisionSerializer(DynamicFieldsModelSerializer):
         lookup_fields=(('article.id', 'articles_pk'), ('id', 'pk')),
         read_only=True
     )
-    user = UserSerializer(read_only=True, fields=['id', 'url', 'username'])
+    user = UserSerializer(read_only=True, fields=USER_MINIMAL_FIELDS)
 
     class Meta:
         model = ArticleRevision
@@ -23,7 +23,7 @@ class ArticleRevisionSerializer(DynamicFieldsModelSerializer):
 
 
 class ArticleSerializer(DynamicFieldsModelSerializer):
-    owner = UserSerializer(read_only=True, fields=['id', 'url', 'username'])
+    owner = UserSerializer(read_only=True, fields=USER_MINIMAL_FIELDS)
     group = GroupSerializer(read_only=True)
     current_revision = ArticleRevisionSerializer(
         read_only=True, allow_null=True, fields=['id', 'url', 'title', 'revision_number', 'previous_revision']

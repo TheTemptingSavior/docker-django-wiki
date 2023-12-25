@@ -4,7 +4,6 @@ from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from rest_framework import viewsets, mixins, permissions, status
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from wiki.models import Article, URLPath, ArticleRevision
 
@@ -28,7 +27,6 @@ class ArticleViewSet(
     queryset = Article.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ArticleSerializer
-    pagination_class = PageNumberPagination
 
     def list(self, request, *args, **kwargs):
         """

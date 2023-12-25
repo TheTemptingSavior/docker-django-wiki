@@ -1,10 +1,14 @@
 from typing import Optional
 
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from rest_framework import viewsets, mixins, permissions, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ParseError
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import exception_handler
 from wiki.models import Article, URLPath, ArticleRevision
 
 from wiki_api.serializers import (
@@ -24,24 +28,18 @@ class ArticleViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet
 ):
-    queryset = Article.objects.all()
+    queryset = Article.objects.order_by('current_revision__title', 'modified').all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ArticleSerializer
+    pagination_class = PageNumberPagination
 
-    def list(self, request, *args, **kwargs):
-        """
-        Override the list method so that we can reduce the number of fields that are returned.
-        """
-        serializer = ArticleSerializer(
-            self.queryset,
-            many=True,
-            context={'request': request},
-            fields=['id', 'url', 'current_revision']
-        )
-        return Response(serializer.data)
+    def get_serializer(self, *args, **kwargs):
+        if "many" in kwargs and kwargs["many"] is True:
+            kwargs["fields"] = ["id", "url", "current_revision"]
+        return super().get_serializer(*args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-        serialized_data: NewArticleSerializer = NewArticleSerializer(data=request.data)
+        serialized_data: NewArticleSerializer = NewArticleSerializer(data=request.data, context={"request": request})
 
         if not serialized_data.is_valid():
             return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -58,31 +56,36 @@ class ArticleViewSet(
             if validated_data["parent"] else None
         )
 
-        # May or may not have been provided a slug - and it could also be empty
-        if "slug" in validated_data:
-            slug: str = slugify(validated_data["title"]) if not validated_data["slug"] else validated_data["slug"]
-        else:
-            slug: str = slugify(validated_data["title"])
-
-        new_urlpath: URLPath = URLPath.create_urlpath(
-            parent=parent_url,
-            slug=slug,
-            title=validated_data["title"],
-            article_kwargs={
-                "owner": request.user,
-                "group": validated_permissions["group"],
-                "group_read": validated_permissions["group_read"],
-                "group_write": validated_permissions["group_write"],
-                "other_read": validated_permissions["other_read"],
-                "other_write": validated_permissions["other_write"],
-            },
-            request=request,
-            article_w_permissions=None,
-            content=validated_data["content"],
-            user_message=validated_data["summary"],
-            user=request.user,
-            ip_address=None,
-        )
+        try:
+            new_urlpath: URLPath = URLPath.create_urlpath(
+                parent=parent_url,
+                slug=validated_data["slug"],
+                title=validated_data["title"],
+                article_kwargs={
+                    "owner": request.user,
+                    "group": validated_permissions["group"],
+                    "group_read": validated_permissions["group_read"],
+                    "group_write": validated_permissions["group_write"],
+                    "other_read": validated_permissions["other_read"],
+                    "other_write": validated_permissions["other_write"],
+                },
+                request=request,
+                article_w_permissions=None,
+                content=validated_data["content"],
+                user_message=validated_data["summary"],
+                user=request.user,
+                ip_address=None,
+            )
+        except IntegrityError as e:
+            error = ParseError(detail=f"Failed to create article. Conflicting slug under the same parent")
+            response = exception_handler(error, self.kwargs.get("context"))
+            response.status_code = 409
+            return response
+        except Exception as e:
+            error = ParseError(detail=f"Failed to create article: {e}")
+            response = exception_handler(error, self.kwargs.get("context"))
+            response.status_code = 400
+            return response
 
         # Grab the article data we just created and return this instead of the URLPath
         new_article = ArticleSerializer(new_urlpath.article, context={"request": request}).data
@@ -109,7 +112,7 @@ class ArticleViewSet(
 
     @action(detail=True, methods=["GET"], name="Get HTML")
     def html(self, request, pk=None, *args, **kwargs):
-        article = get_object_or_404(Article.objects.all(), pk=pk)
+        article = get_object_or_404(self.queryset, pk=pk)
         serializer = ArticleHTMLSerializer(article, many=False, context={"request": request})
         return Response(serializer.data)
 

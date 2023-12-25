@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User, Group
 from django.test import Client, TestCase
 from rest_framework import status
+from wiki.models.article import Article, ArticleRevision
+from wiki.models.urlpath import URLPath
 
 
 from the_wiki.settings import WIKI_API_ENABLED
@@ -47,10 +49,10 @@ class APIUserTest(APITest):
         response = self.client.get("/api/users/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        assert "count" in response.data and response.data["count"] == 5
-        assert "previous" in response.data and response.data["previous"] is None
-        assert "next" in response.data and response.data["next"] is None
-        assert len(response.data["results"]) == 5
+        self.assertTrue("count" in response.data and response.data["count"] == 5)
+        self.assertTrue("previous" in response.data and response.data["previous"] is None)
+        self.assertTrue("next" in response.data and response.data["next"] is None)
+        self.assertTrue(len(response.data["results"]) == 5)
 
         user = response.data["results"][0]
         self.assertEqual(set(user.keys()), self.default_user_keys)
@@ -369,3 +371,182 @@ class APIGroupTest(APITest):
         self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
         response = self.client.put(f"/api/groups/999/", data={"name": "New Name"}, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class APIArticleTest(APITest):
+    fixtures = ["1-content-types.yaml", "2-permissions.yaml", "3-groups.yaml", "4-users.yaml", "5-articles.yaml"]
+
+    default_list_keys = {"id", "url", "current_revision"}
+    default_list_current_revision_keys = {"id", "url", "revision_number", "title", "previous_revision"}
+    default_detail_keys = default_list_keys.union({
+        "created", "modified", "group_read", "group_write", "other_read", "other_write", "owner", "group", "attachments"
+    })
+
+    @property
+    def root_article(self):
+        return URLPath.objects.filter(level=0).first()
+
+    # ###
+    # ### Begin tests for GET '/api/articles/'
+    # ###
+
+    def test_article_list(self):
+        self.client.login(username=self.admin_username, password=self.admin_password)
+        response = self.client.get("/api/articles/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertTrue("count" in response.data and response.data["count"] == 4)
+        self.assertTrue("previous" in response.data and response.data["previous"] is None)
+        self.assertTrue("next" in response.data and response.data["next"] is None)
+        self.assertTrue(len(response.data["results"]) == 4)
+
+        article = response.data["results"][0]
+        self.assertEqual(set(article.keys()), self.default_list_keys)
+        self.assertEqual(set(article["current_revision"].keys()), self.default_list_current_revision_keys)
+
+    def test_article_list_not_logged_in(self):
+        response = self.client.get("/api/articles/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_article_list_trailing_slash(self):
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.get("/api/articles", follow=False)
+        self.assertEqual(response.status_code, status.HTTP_301_MOVED_PERMANENTLY)
+
+    # ###
+    # ### Begin tests for POST '/api/articles/'
+    # ###
+
+    def test_article_create(self):
+        article_data = {
+            "parent": self.root_article.id,
+            "title": "Article from the API",
+            "content": "# Hello, World!\n\nThis is the article body",
+            "summary": "Test article",
+            "permissions": {  # optional
+                "group": None,
+                "group_read": True,
+                "group_write": True,
+                "other_read": True,
+                "other_write": True
+            }
+        }
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.post("/api/articles/", data=article_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(set(response.data.keys()), self.default_detail_keys)
+
+        # Make sure the article was created
+        new_article = Article.objects.get(id=response.data["id"])
+        self.assertIsNotNone(new_article)
+        self.assertEqual(new_article.current_revision.title, article_data["title"])
+
+        # Make sure a URLPath was created
+        url_path = URLPath.objects.filter(article__id=response.data["id"]).first()
+        self.assertIsNotNone(url_path)
+        self.assertEqual(url_path.slug, "article-from-the-api")
+
+        response = self.client.get("/article-from-the-api/", follow=False)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_article_create_custom_slug(self):
+        article_data = {
+            "parent": self.root_article.id,
+            "title": "Article from the API",
+            "slug": "custom-slug",
+            "content": "# Hello, World!\n\nThis is the article body",
+            "summary": "Test article",
+            "permissions": {  # optional
+                "group": None,
+                "group_read": True,
+                "group_write": True,
+                "other_read": True,
+                "other_write": True
+            }
+        }
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.post("/api/articles/", data=article_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(set(response.data.keys()), self.default_detail_keys)
+
+        # Make sure the article was created
+        new_article = Article.objects.get(id=response.data["id"])
+        self.assertIsNotNone(new_article)
+        self.assertEqual(new_article.current_revision.title, article_data["title"])
+
+        # Make sure a URLPath was created
+        url_path = URLPath.objects.filter(article__id=response.data["id"]).first()
+        self.assertIsNotNone(url_path)
+        self.assertEqual(url_path.slug, "custom-slug")
+
+        response = self.client.get("/custom-slug/", follow=False)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_article_create_no_permissions(self):
+        article_data = {
+            "parent": self.root_article.id,  # root article
+            "title": "Article from the API",
+            "slug": "custom-slug",
+            "content": "# Hello, World!\n\nThis is the article body",
+            "summary": "Test article",
+        }
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.post("/api/articles/", data=article_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(set(response.data.keys()), self.default_detail_keys)
+
+        # Make sure the article was created
+        new_article = Article.objects.get(id=response.data["id"])
+        self.assertIsNotNone(new_article)
+        self.assertEqual(new_article.current_revision.title, article_data["title"])
+
+        # Make sure a URLPath was created
+        url_path = URLPath.objects.filter(article__id=response.data["id"]).first()
+        self.assertIsNotNone(url_path)
+        self.assertEqual(url_path.slug, "custom-slug")
+
+        response = self.client.get("/custom-slug/", follow=False)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_article_create_not_logged_in(self):
+        article_data = {
+            "parent": self.root_article.id,
+            "title": "Article from the API",
+            "slug": "custom-slug",
+            "content": "# Hello, World!\n\nThis is the article body",
+            "summary": "Test article",
+        }
+        response = self.client.post("/api/articles/", data=article_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_article_bad_data(self):
+        article_data = {
+            "parent": self.root_article.id,
+            "content": "# Hello, World!\n\nThis is the article body",
+            "summary": "Test article",
+        }
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.post("/api/articles/", data=article_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("title", response.data)
+        self.assertEqual(response.data["title"][0], "This field is required.")
+
+    def test_create_article_duplicate(self):
+        article_data = {
+            "parent": self.root_article.id,
+            "title": "Article from the API",
+            "content": "# Hello, World!\n\nThis is the article body",
+            "summary": "Test article",
+        }
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.post("/api/articles/", data=article_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.post("/api/articles/", data=article_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("non_field_errors", response.data)
+        print(response.data["non_field_errors"][0])
+        self.assertEqual(
+            response.data["non_field_errors"][0],
+            "Article with this slug already exists under this parent URL."
+        )

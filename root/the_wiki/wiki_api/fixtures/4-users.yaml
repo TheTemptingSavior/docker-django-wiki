@@ -1,0 +1,63 @@
+- model: auth.user
+  pk: 1
+  fields:
+    password: pbkdf2_sha256$600000$BvvcqQADHjgL3YMSqoHNrI$rrx2ES111gcqp4mUrkeqwwNKo04O+fidoMjeSTf5F+w=
+    last_login: 2023-12-18 21:48:15.314817+00:00
+    is_superuser: true
+    username: admin
+    first_name: ''
+    last_name: ''
+    email: ''
+    is_staff: true
+    is_active: true
+    date_joined: 2023-12-02 12:40:01.168591+00:00
+    groups: []
+    user_permissions: []
+- model: auth.user
+  pk: 3
+  fields:
+    password: pbkdf2_sha256$600000$o4dlTMYWgibZnQXCmMzfW1$zfx2tt9d9SIXEKSBZCY8+w7zfsZ0PxvYSKy9hgZrLR8=
+    last_login: null
+    is_superuser: false
+    username: test-user-1
+    first_name: ''
+    last_name: ''
+    email: ''
+    is_staff: true
+    is_active: true
+    date_joined: 2023-12-25 15:57:29+00:00
+    groups:
+    - 2
+    user_permissions: []
+- model: auth.user
+  pk: 4
+  fields:
+    password: pbkdf2_sha256$600000$eC6kZ8kJN8ohscNkZvzvEe$5EguONn20JwL9S1qgX3g1PC+RbiVghGoCRZuRWN0anw=
+    last_login: null
+    is_superuser: false
+    username: test-user-2
+    first_name: ''
+    last_name: ''
+    email: ''
+    is_staff: false
+    is_active: true
+    date_joined: 2023-12-25 15:57:37+00:00
+    groups:
+    - 1
+    user_permissions: []
+- model: auth.user
+  pk: 5
+  fields:
+    password: pbkdf2_sha256$600000$H1wTKnQdTn1BVd1ygJiUdy$9YlMSWZ+4vSIXAV9ymp8qP+CBNEB1Vk6Hs/7C/gbj3E=
+    last_login: null
+    is_superuser: false
+    username: test-user-3
+    first_name: ''
+    last_name: ''
+    email: ''
+    is_staff: false
+    is_active: true
+    date_joined: 2023-12-25 16:05:41+00:00
+    groups:
+    - 1
+    user_permissions: []

@@ -7,8 +7,8 @@ from the_wiki.settings import WIKI_API_ENABLED
 
 
 class APITest(TestCase):
-    admin_username = "admin"
-    admin_password = "admin"
+    admin_username = "test-admin"
+    admin_password = "test-admin"
 
     def setUp(self):
         self.assertTrue(WIKI_API_ENABLED, "Wiki API not enabled. Failing tests")
@@ -17,6 +17,8 @@ class APITest(TestCase):
 
 
 class APIUserTest(APITest):
+    fixtures = ["1-content-types.yaml", "2-permissions.yaml", "3-groups.yaml", "4-users.yaml"]
+
     default_user_keys = {
         "id",
         "url",
@@ -34,14 +36,6 @@ class APIUserTest(APITest):
         "last_login",
     }
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.users = [
-            User.objects.create_user(username="test-user-1", email="test-user-1@example.com", password="test-user-1"),
-            User.objects.create_user(username="test-user-2", email="test-user-2@example.com", password="test-user-2"),
-            User.objects.create_user(username="test-user-3", email="test-user-3@example.com", password="test-user-3"),
-        ]
-
     # ###
     # ### Begin tests for GET '/api/users/'
     # ###
@@ -53,10 +47,10 @@ class APIUserTest(APITest):
         response = self.client.get("/api/users/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        assert "count" in response.data and response.data["count"] == 4
+        assert "count" in response.data and response.data["count"] == 5
         assert "previous" in response.data and response.data["previous"] is None
         assert "next" in response.data and response.data["next"] is None
-        assert len(response.data["results"]) == 4
+        assert len(response.data["results"]) == 5
 
         user = response.data["results"][0]
         self.assertEqual(set(user.keys()), self.default_user_keys)
@@ -232,19 +226,13 @@ class APIUserTest(APITest):
 
 
 class APIGroupTest(APITest):
+    fixtures = ["1-content-types.yaml", "2-permissions.yaml", "3-groups.yaml"]
+
     default_group_keys = {"id", "name", "url"}
 
-    # ###
-    # ### Begin tests for GET '/api/groups/'
-    # ###
-
-    @classmethod
-    def setUpTestData(cls):
-        cls.groups = [
-            Group.objects.create(name="group-1"),
-            Group.objects.create(name="group-2"),
-            Group.objects.create(name="group-3"),
-        ]
+    @property
+    def groups(self):
+        return Group.objects.order_by('pk').all()
 
     # ###
     # ### Begin tests for GET '/api/groups/'
@@ -296,7 +284,7 @@ class APIGroupTest(APITest):
 
     def test_group_create_duplicate(self):
         self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
-        response = self.client.post("/api/groups/", data={"name": "group-2"}, content_type="application/json")
+        response = self.client.post("/api/groups/", data={"name": "readers"}, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("name", response.data)
         self.assertEqual(response.data["name"][0], "group with this name already exists.")
@@ -332,10 +320,11 @@ class APIGroupTest(APITest):
 
     def test_group_delete(self):
         self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
-        response = self.client.delete(f"/api/groups/{self.groups[0].id}/", content_type="application/json")
+        group = self.groups[0]
+        response = self.client.delete(f"/api/groups/{group.id}/", content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        self.assertRaises(Group.DoesNotExist, Group.objects.get, pk=self.groups[0].id)
+        self.assertRaises(Group.DoesNotExist, Group.objects.get, pk=group.id)
 
     def test_group_delete_not_logged_in(self):
         response = self.client.delete(f"/api/groups/{self.groups[0].id}/", content_type="application/json")

@@ -24,7 +24,7 @@ class AttachmentViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
 
         return queryset
 
-    @action(detail=True, methods=['GET'], name='Download', renderer_classes=[PassthroughRenderer])
+    @action(detail=True, methods=["GET"], name="Download", renderer_classes=[PassthroughRenderer])
     def download(self, request, articles_pk=None, pk=None):
         attachment = get_object_or_404(Attachment, pk=pk)
         if not attachment.current_revision:
@@ -51,7 +51,7 @@ class AttachmentRevisionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin
 
         return queryset
 
-    @action(detail=True, methods=['GET'], name='Download', renderer_classes=[PassthroughRenderer])
+    @action(detail=True, methods=["GET"], name="Download", renderer_classes=[PassthroughRenderer])
     def download(self, request, articles_pk=None, attachments_pk=None, pk=None):
         attachment = get_object_or_404(Attachment, pk=attachments_pk)
         revision = get_object_or_404(AttachmentRevision, pk=pk)

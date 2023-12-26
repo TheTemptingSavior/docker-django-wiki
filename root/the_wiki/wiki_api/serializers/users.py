@@ -11,9 +11,9 @@ USER_MINIMAL_FIELDS = ["id", "username", "url"]
 
 class UserSerializer(DynamicFieldsModelSerializer):
     groups = GroupSerializer(many=True, read_only=True)
-    url = serializers.HyperlinkedIdentityField(view_name=f'{WikiApiConfig.name}:user-detail')
+    url = serializers.HyperlinkedIdentityField(view_name=f"{WikiApiConfig.name}:user-detail")
 
     class Meta:
         model = User
         exclude = ["password"]
-        extra_kwargs = {'url': {'view_name': f'{WikiApiConfig.name}:user-detail'}}
+        extra_kwargs = {"url": {"view_name": f"{WikiApiConfig.name}:user-detail"}}

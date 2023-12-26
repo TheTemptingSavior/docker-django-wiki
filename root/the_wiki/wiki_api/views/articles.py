@@ -16,7 +16,7 @@ from wiki_api.serializers import (
     NewArticleSerializer,
     ArticleHTMLSerializer,
     ArticleRevisionSerializer,
-    NewRevisionSerializer
+    NewRevisionSerializer,
 )
 from wiki_api.types import CreateArticleBody, CreateArticleBodyPermission, CreateRevisionBody
 
@@ -26,9 +26,9 @@ class ArticleViewSet(
     mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
-    viewsets.GenericViewSet
+    viewsets.GenericViewSet,
 ):
-    queryset = Article.objects.order_by('current_revision__title', 'modified').all()
+    queryset = Article.objects.order_by("current_revision__title", "modified").all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ArticleSerializer
     pagination_class = PageNumberPagination
@@ -47,13 +47,12 @@ class ArticleViewSet(
         validated_data: CreateArticleBody = serialized_data.data
         validated_permissions: CreateArticleBodyPermission = validated_data.get(
             "permissions",
-            {"group": None, "group_read": True, "group_write": True, "other_read": True, "other_write": True}
+            {"group": None, "group_read": True, "group_write": True, "other_read": True, "other_write": True},
         )
 
         # Find the parent URLPath object - or None if this is a root article
         parent_url: Optional[URLPath] = (
-            get_object_or_404(URLPath, pk=validated_data["parent"])
-            if validated_data["parent"] else None
+            get_object_or_404(URLPath, pk=validated_data["parent"]) if validated_data["parent"] else None
         )
 
         try:
@@ -118,10 +117,7 @@ class ArticleViewSet(
 
 
 class ArticleRevisionViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     serializer_class = ArticleRevisionSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -146,7 +142,7 @@ class ArticleRevisionViewSet(
             article_id=current_article.id,
             content=validated_data["content"],
             user=self.request.user,
-            user_message=validated_data.get("user_message", "")
+            user_message=validated_data.get("user_message", ""),
         )
 
         current_article.add_revision(new_revision)

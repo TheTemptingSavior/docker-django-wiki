@@ -58,17 +58,9 @@ INSTALLED_APPS = [
     "wiki.plugins.links.apps.LinksConfig",
     "wiki.plugins.help.apps.HelpConfig",
     # 3rd party
-<<<<<<< HEAD
-    "rest_framework",
     "django_extensions",
     # my apps
     "the_help",
-    "wiki_api",
-=======
-    'django_extensions',
-    # my apps
-    'the_help',
->>>>>>> 73ac385 (place api behind environment variable)
 ]
 
 WIKI_API_ENABLED = False
@@ -180,10 +172,7 @@ LOOKUP_LEVEL = 3
 LOGIN_REDIRECT_URL = reverse_lazy("wiki:get", kwargs={"path": ""})
 
 # Rest Framework
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
-}
+REST_FRAMEWORK = {"DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination", "PAGE_SIZE": 10}
 
 
 try:

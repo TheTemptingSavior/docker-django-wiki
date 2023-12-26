@@ -8,20 +8,20 @@ from wiki_api.serializers.articles import ArticleSerializer
 
 
 class URLSerializer(DynamicFieldsModelSerializer):
-    article = ArticleSerializer(read_only=True, fields=['id', 'url', 'created', 'modified'])
-    url = serializers.HyperlinkedIdentityField(view_name=f'{WikiApiConfig.name}:urlpaths-detail')
+    article = ArticleSerializer(read_only=True, fields=["id", "url", "created", "modified"])
+    url = serializers.HyperlinkedIdentityField(view_name=f"{WikiApiConfig.name}:urlpaths-detail")
     parent_url = serializers.SerializerMethodField()
 
     def get_parent_url(self, obj):
         if obj.parent:
             return reverse_lazy(
-                f'{WikiApiConfig.name}:urlpaths-detail', kwargs={'pk': obj.parent.id}, request=self.context["request"]
+                f"{WikiApiConfig.name}:urlpaths-detail", kwargs={"pk": obj.parent.id}, request=self.context["request"]
             )
         return None
 
     class Meta:
         model = URLPath
-        fields = '__all__'
+        fields = "__all__"
         extra_kwargs = {
-            'url': {'view_name': f'{WikiApiConfig.name}:urlpaths-detail'},
+            "url": {"view_name": f"{WikiApiConfig.name}:urlpaths-detail"},
         }

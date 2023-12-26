@@ -234,7 +234,7 @@ class APIGroupTest(APITest):
 
     @property
     def groups(self):
-        return Group.objects.order_by('pk').all()
+        return Group.objects.order_by("pk").all()
 
     # ###
     # ### Begin tests for GET '/api/groups/'
@@ -378,9 +378,19 @@ class APIArticleTest(APITest):
 
     default_list_keys = {"id", "url", "current_revision"}
     default_list_current_revision_keys = {"id", "url", "revision_number", "title", "previous_revision"}
-    default_detail_keys = default_list_keys.union({
-        "created", "modified", "group_read", "group_write", "other_read", "other_write", "owner", "group", "attachments"
-    })
+    default_detail_keys = default_list_keys.union(
+        {
+            "created",
+            "modified",
+            "group_read",
+            "group_write",
+            "other_read",
+            "other_write",
+            "owner",
+            "group",
+            "attachments",
+        }
+    )
 
     @property
     def root_article(self):
@@ -428,8 +438,8 @@ class APIArticleTest(APITest):
                 "group_read": True,
                 "group_write": True,
                 "other_read": True,
-                "other_write": True
-            }
+                "other_write": True,
+            },
         }
         self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
         response = self.client.post("/api/articles/", data=article_data, content_type="application/json")
@@ -461,8 +471,8 @@ class APIArticleTest(APITest):
                 "group_read": True,
                 "group_write": True,
                 "other_read": True,
-                "other_write": True
-            }
+                "other_write": True,
+            },
         }
         self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
         response = self.client.post("/api/articles/", data=article_data, content_type="application/json")
@@ -547,6 +557,5 @@ class APIArticleTest(APITest):
         self.assertIn("non_field_errors", response.data)
         print(response.data["non_field_errors"][0])
         self.assertEqual(
-            response.data["non_field_errors"][0],
-            "Article with this slug already exists under this parent URL."
+            response.data["non_field_errors"][0], "Article with this slug already exists under this parent URL."
         )

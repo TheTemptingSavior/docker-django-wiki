@@ -1,0 +1,854 @@
+openapi: 3.0.3
+info:
+  title: Django Wiki API
+  description: |-
+    Simple API wrapper around the `django-wiki` package
+  contact:
+    email: TheTemptingSavior@protonmail.com
+  license:
+    name: GPL 3.0
+    url: https://github.com/Illumina/licenses/blob/master/gpl-3.0.txt
+  version: 0.1.1
+externalDocs:
+  description: Docker Django Wiki Repository
+  url: https://github.com/TheTemptingSavior/docker-django-wiki
+servers:
+  - url: http://localhost:8000
+tags:
+  - name: article
+    description: Everything about articles
+  - name: article-revisions
+    description: Article revisions
+  - name: attachments
+    description: Article attachments
+  - name: attachment-revisions
+    description: Attachment revisions
+  - name: groups
+    description: Group operations
+  - name: users
+    description: User operations
+
+paths:
+  /api/articles:
+    get:
+      tags:
+        - article
+      summary: Paginated article list
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+      responses:
+        '200':
+          description: Article list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MinimalArticle'
+    post:
+      tags:
+        - article
+      summary: Create an article
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parent:
+                  type: integer
+                  format: int32
+                  example: 3
+                  description: ID of the parent URL object
+                title:
+                  type: string
+                  description: Title of the article
+                  example: My First Post
+                slug:
+                  type: string
+                  nullable: true
+                  example: my-first-post
+                  description: Slug version of the provided title. If null, the title will be slugified
+                content:
+                  type: string
+                  description: Markdown content of the document
+                summary:
+                  type: string
+                  nullable: true
+                  description: Brief description of the article
+                permissions:
+                  type: object
+                  description: Permissions applied to this article
+                  properties:
+                    group:
+                      type: string
+                      example: readers
+                      description: Group this article belongs too
+                    group_read:
+                      type: boolean
+                      description: Can the group read this article
+                    group_write:
+                      type: boolean
+                      description: Can the group edit this article
+                    other_read:
+                      type: boolean
+                      description: Can the world read the article
+                    other_write:
+                      type: boolean
+                      description: Can the world edit this article
+      responses:
+        '201':
+          description: Created article
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '400':
+          description: Failed to create article
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/BadRequest'
+  /api/articles/{article_id}:
+    get:
+      tags:
+        - article
+      summary: Get a single article
+      parameters:
+        - $ref: '#/components/parameters/ArticleID'
+      responses:
+        '200':
+          description: Article information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - article
+      summary: Update an article
+      parameters:
+        - $ref: '#/components/parameters/ArticleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                group:
+                  type: string
+                  example: readers
+                group_read:
+                  type: boolean
+                group_write:
+                  type: boolean
+                other_read:
+                  type: boolean
+                other_write:
+                  type: boolean
+      responses:
+        '200':
+          description: 'Article updated'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/article/{article_id}/html:
+    get:
+      tags:
+        - article
+      summary: Get rendered article HTML
+      parameters:
+        - $ref: '#/components/parameters/ArticleID'
+      responses:
+        '200':
+          description: Rendered HTML content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  html:
+                    type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+  /api/articles/{article_id}/revisions:
+    get:
+      tags:
+        - article-revisions
+      summary: Get article revisions
+      parameters:
+        - $ref: '#/components/parameters/ArticleID'
+      responses:
+        '200':
+          description: List of article revisions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MinimalArticleRevision'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - article-revisions
+      summary: Create an article revision
+      parameters:
+        - $ref: '#/components/parameters/ArticleID'
+      responses:
+        '201':
+          description: Created article revision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleRevision'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/articles/{article_id}/revisions/{revision_id}:
+    get:
+      tags:
+        - article-revisions
+      summary: Get an article revision
+      parameters:
+        - $ref: '#/components/parameters/ArticleID'
+        - $ref: '#/components/parameters/RevisionID'
+      responses:
+        '200':
+          description: Revision information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachmentRevision'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+  /api/articles/{article_id}/attachments:
+    get:
+      tags:
+        - attachments
+      summary: Get article attachments
+      parameters:
+        - $ref: '#/components/parameters/ArticleID'
+      responses:
+        '200':
+          description: List of attachments on this article
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MinimalAttachment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/articles/{article_id}/attachments/{attachment_id}:
+    get:
+      tags:
+        - attachments
+      summary: Get an attachment
+      parameters:
+        - $ref: '#/components/parameters/ArticleID'
+        - $ref: '#/components/parameters/AttachmentID'
+      responses:
+        '200':
+          description: Attachment information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/articles/{article_id}/attachments/{attachment_id}/download:
+    get:
+      tags:
+        - attachments
+      summary: Get an attachment
+      parameters:
+        - $ref: '#/components/parameters/ArticleID'
+        - $ref: '#/components/parameters/AttachmentID'
+      responses:
+        '200':
+          description: Attachment information
+          content:
+            application/octect-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/articles/{article_id}/attachments/{attachment_id}/revisions:
+    get:
+      tags:
+        - attachment-revisions
+      summary: Attachment revisions
+      parameters:
+        - $ref: '#/components/parameters/ArticleID'
+        - $ref: '#/components/parameters/AttachmentID'
+      responses:
+        '200':
+          description: List of revisions for this article
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MinimalArticleRevision'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/articles/{article_id}/attachments/{attachment_id}/revisions/{attachment_revision_id}:
+    get:
+      tags:
+        - attachment-revisions
+      summary: Revision for this attachment
+      parameters:
+        - $ref: '#/components/parameters/ArticleID'
+        - $ref: '#/components/parameters/AttachmentID'
+        - $ref: '#/components/parameters/AttachmentRevisionID'
+      responses:
+        '200':
+          description: Attachment revision information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachmentRevision'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+  /api/groups:
+    get:
+      tags:
+        - groups
+      summary: List groups
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+      responses:
+        '200':
+          description: Group list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+    post:
+      tags:
+        - groups
+      summary: Create group
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: new-group
+      responses:
+        '201':
+          description: Created group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/groups/{id}:
+    get:
+      tags:
+        - groups
+      summary: Get a group
+      parameters:
+        - $ref: '#/components/parameters/GroupID'
+      responses:
+        '200':
+          description: Group information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - groups
+      summary: Delete a group
+      parameters:
+        - $ref: '#/components/parameters/GroupID'
+      responses:
+        '204':
+          description: Group deleted
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - groups
+      summary: Update a group
+      parameters:
+        - $ref: '#/components/parameters/GroupID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: renamed-group
+      responses:
+        '200':
+          description: Updated group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+  /api/users:
+    get:
+      tags:
+        - users
+      summary: List users
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      tags:
+        - users
+      summary: Create user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: new-user
+                email:
+                  type: string
+                  format: email
+                  example: new-user@example.com
+      responses:
+        '201':
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Failed to create user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/BadRequest'
+  /api/users/{id}:
+    get:
+      tags:
+        - users
+      summary: Get a single user
+      parameters:
+        - $ref: '#/components/parameters/UserID'
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - users
+      summary: Delete a user
+      parameters:
+        - $ref: '#/components/parameters/UserID'
+      responses:
+        '204':
+          description: User deleted
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - users
+      summary: Update a user
+      parameters:
+        - $ref: '#/components/parameters/UserID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: new-user
+                email:
+                  type: string
+                  format: email
+                  example: new-user@example.com
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Failed to update user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/NotFound'
+
+
+components:
+  responses:
+    APIResponse:
+      description: Generic API response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/responses/APIResponse'
+    NotFound:
+      description: Item Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/responses/APIResponse'
+  parameters:
+    GroupID:
+      name: id
+      in: path
+      description: Group ID
+      required: true
+      schema:
+        type: integer
+        format: int32
+    UserID:
+      name: id
+      in: path
+      description: User ID
+      required: true
+      schema:
+        type: integer
+        format: int32
+    ArticleID:
+      name: article_id
+      in: path
+      description: Article ID
+      required: true
+      schema:
+        type: integer
+        format: int32
+    RevisionID:
+      name: revision_id
+      in: path
+      description: Revision ID
+      required: true
+      schema:
+        type: integer
+        format: int32
+    AttachmentID:
+      name: attachment_id
+      in: path
+      description: Revision ID
+      required: true
+      schema:
+        type: integer
+        format: int32
+    AttachmentRevisionID:
+      name: attachment_revision_id
+      in: path
+      description: Attachment revision ID
+      required: true
+      schema:
+        type: integer
+        format: int32
+    PageParam:
+      name: page
+      in: query
+      description: Page of results to retrieve
+      required: false
+      schema:
+        type: integer
+        default: 1
+        format: int32
+  schemas:
+    Group:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 1
+        name:
+          type: string
+          example: readers
+        url:
+          type: string
+          format: uri
+          example: https://<>/api/groups/1/
+    MinimalUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 5
+        url:
+          type: string
+          format: uri
+          example: https://<url of server>/api/users/5/
+        username:
+          type: string
+          example: admin
+    User:
+      allOf:
+        - $ref: '#/components/schemas/MinimalUser'
+        - type: object
+          properties:
+            email:
+              type: string
+              format: email
+              example: admin@example.com
+            groups:
+              type: array
+              items:
+                $ref: '#/components/schemas/Group'
+    MinimalAttachmentRevision:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        url:
+          type: string
+          format: uri
+        revision_number:
+          type: integer
+          format: int32
+        description:
+          type: string
+    AttachmentRevision:
+      allOf:
+        - $ref: '#/components/schemas/MinimalAttachmentRevision'
+        - type: object
+          properties:
+            user_message:
+              type: string
+            automatic_log:
+              type: string
+            ip_address:
+              type: string
+              nullable: true
+            modified:
+              type: string
+            created:
+              type: string
+            deleted:
+              type: boolean
+            locked:
+              type: boolean
+            file:
+              type: string
+              format: uri
+            user:
+              $ref: '#/components/schemas/MinimalUser'
+            previous_revision:
+              type: integer
+              format: int32
+              nullable: true
+            attachment:
+              type: integer
+              format: int32
+    MinimalAttachment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: int32
+          example: 19
+        url:
+          type: string
+          format: uri
+          example: https://<url of server>/api/articles/10/attachments/19/
+        original_filename:
+          type: string
+          example: Filename.pdf
+    Attachment:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        created:
+          type: string
+          format: date-time
+        modified:
+          type: string
+          format: date-time
+        article:
+          type: integer
+          format: int32
+        articles:
+          type: array
+          items:
+            type: integer
+    MinimalArticleRevision:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 7
+        url:
+          type: string
+          format: uri
+          example: https://<url of server>/api/articles/10/revisions/7/
+        revision_number:
+          type: integer
+          format: in32
+          example: 1
+        title:
+          type: string
+          example: Title of article
+        prevision_revision:
+          type: integer
+          format: int32
+          nullable: true
+    ArticleRevision:
+      allOf:
+        - $ref: '#/components/schemas/MinimalArticleRevision'
+        - type: object
+          properties:
+            user_message:
+              type: string
+            automatic_log:
+              type: string
+            ip_address:
+              type: string
+              nullable: true
+            modified:
+              type: string
+              format: date-time
+            created:
+              type: string
+              format: date-time
+            deleted:
+              type: boolean
+            locked:
+              type: boolean
+            content:
+              type: string
+            user:
+              $ref: '#/components/schemas/MinimalUser'
+            article:
+              type: integer
+              format: int32
+    MinimalArticle:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 10
+          description: ID of this article
+        url:
+          type: string
+          format: uri
+          example: https://<url of server>/api/articles/10/
+          description: API URL for this article
+        current_revision:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/MinimalArticleRevision'
+    Article:
+      allOf:
+        - $ref: '#/components/schemas/MinimalArticle'
+        - type: object
+          properties:
+            created:
+              type: string
+              format: date-time
+              description: Creation date of this article
+            modified:
+              type: string
+              format: date-time
+              description: Modification date of this article
+            group_read:
+              type: boolean
+              description: Can this article be read by members of its group
+            group_write:
+              type: boolean
+              description: Can this article be edited by members of its group
+            other_read:
+              type: boolean
+              description: Can this article be read globally
+            other_write:
+              type: boolean
+              description: Can this article be edited globally
+            owner:
+              nullable: true
+              allOf:
+                - $ref: '#/components/schemas/MinimalUser'
+            group:
+              nullable: true
+              allOf:
+                - $ref: '#/components/schemas/Group'
+            attachments:
+              nullable: true
+              allOf:
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/MinimalAttachment'

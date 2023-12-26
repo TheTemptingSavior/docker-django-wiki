@@ -3,10 +3,10 @@ from rest_framework.reverse import reverse
 
 
 class ParameterisedHyperlinkedIdentityField(serializers.HyperlinkedIdentityField):
-    lookup_fields = (('pk', 'pk'),)
+    lookup_fields = (("pk", "pk"),)
 
     def __init__(self, *args, **kwargs):
-        self.lookup_fields = kwargs.pop('lookup_fields', self.lookup_fields)
+        self.lookup_fields = kwargs.pop("lookup_fields", self.lookup_fields)
         super(ParameterisedHyperlinkedIdentityField, self).__init__(*args, **kwargs)
 
     def get_url(self, obj, view_name, request, format):
@@ -17,7 +17,7 @@ class ParameterisedHyperlinkedIdentityField(serializers.HyperlinkedIdentityField
                 continue
 
             attr = obj
-            for field in model_field.split('.'):
+            for field in model_field.split("."):
                 attr = getattr(attr, field)
             kwargs[url_param] = attr
         return reverse(view_name, kwargs=kwargs, request=request, format=format)
@@ -31,7 +31,7 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         # Don't pass the 'fields' arg up to the superclass
-        fields = kwargs.pop('fields', None)
+        fields = kwargs.pop("fields", None)
 
         # Instantiate the superclass normally
         super().__init__(*args, **kwargs)
@@ -58,18 +58,18 @@ from .urls import URLSerializer  # noqa E402
 
 __all__ = [
     # Helper serializers
-    'ParameterisedHyperlinkedIdentityField',
-    'DynamicFieldsModelSerializer',
+    "ParameterisedHyperlinkedIdentityField",
+    "DynamicFieldsModelSerializer",
     # Primary model serializers
-    'GroupSerializer',
-    'UserSerializer',  # requires group
-    'AttachmentRevisionSerializer',
-    'AttachmentSerializer',
-    'ArticleRevisionSerializer',
-    'ArticleSerializer',  # requires user/attachment/article revision
-    'ArticleHTMLSerializer',
-    'URLSerializer',  # requires article
+    "GroupSerializer",
+    "UserSerializer",  # requires group
+    "AttachmentRevisionSerializer",
+    "AttachmentSerializer",
+    "ArticleRevisionSerializer",
+    "ArticleSerializer",  # requires user/attachment/article revision
+    "ArticleHTMLSerializer",
+    "URLSerializer",  # requires article
     # Request body parsers
-    'NewArticleSerializer',
-    'NewRevisionSerializer',
+    "NewArticleSerializer",
+    "NewRevisionSerializer",
 ]

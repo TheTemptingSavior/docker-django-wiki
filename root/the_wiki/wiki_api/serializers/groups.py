@@ -7,6 +7,5 @@ from wiki_api.apps import WikiApiConfig
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Group
-        fields = ['id', 'url', 'name']
-        extra_kwargs = {'url': {'view_name': f'{WikiApiConfig.name}:group-detail'}}
-
+        fields = ["id", "url", "name"]
+        extra_kwargs = {"url": {"view_name": f"{WikiApiConfig.name}:group-detail"}}

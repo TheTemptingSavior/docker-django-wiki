@@ -21,13 +21,11 @@ CreateArticleBody = TypedDict(
         "slug": Optional[str],
         "content": str,
         "summary": Optional[str],
-        "permissions": CreateArticleBodyPermission
+        "permissions": CreateArticleBodyPermission,
     },
-    total=False
+    total=False,
 )
 
 CreateRevisionBody = TypedDict(
-    "CreateRevisionBody",
-    {"title": str, "content": str, "user_message": Optional[str]},
-    total=False
+    "CreateRevisionBody", {"title": str, "content": str, "user_message": Optional[str]}, total=False
 )

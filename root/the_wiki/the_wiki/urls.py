@@ -33,5 +33,5 @@ if settings.WIKI_API_ENABLED:
 urlpatterns += [
     path("admin/", admin.site.urls),
     path("notifications/", include("django_nyt.urls")),
-    path("", include("wiki.urls"))
+    path("", include("wiki.urls")),
 ]

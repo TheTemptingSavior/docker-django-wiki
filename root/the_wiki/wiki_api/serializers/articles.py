@@ -82,7 +82,11 @@ class NewArticleSerializer(serializers.Serializer):
     summary = serializers.CharField(required=False, max_length=255)
     permissions = PermissionSerializer(required=False)
 
-    def validate(self, data):
+    def _validate_slug(self, data):
+        """
+        It is not possible to create an article with the same parent and the same slug on the same site. This is a
+        unique constraint in the database. Raise a validation error if this is the case
+        """
         if not data.get("slug"):
             data["slug"] = slugify(data["title"])
 
@@ -91,6 +95,24 @@ class NewArticleSerializer(serializers.Serializer):
         ).count()
         if existing:
             raise serializers.ValidationError("Article with this slug already exists under this parent URL.")
+
+    def _validate_parent(self, data):
+        """
+        It is not possible to have 2 root articles on a site. If we detect a root article for this site already, raise
+        a validation error
+        """
+        if data["parent"] is not None:
+            return
+
+        existing_root = URLPath.objects.filter(
+            parent__isnull=True, site=get_current_site(self.context.get("request"))
+        ).first()
+        if existing_root:
+            raise serializers.ValidationError("A root article already exists. You must specify a parent.")
+
+    def validate(self, data):
+        self._validate_parent(data)
+        self._validate_slug(data)
 
         return data
 

@@ -396,6 +396,10 @@ class APIArticleTest(APITest):
     def root_article(self):
         return URLPath.objects.filter(level=0).first()
 
+    @property
+    def articles(self):
+        return Article.objects.order_by("id").all()
+
     # ###
     # ### Begin tests for GET '/api/articles/'
     # ###
@@ -555,7 +559,67 @@ class APIArticleTest(APITest):
         response = self.client.post("/api/articles/", data=article_data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("non_field_errors", response.data)
-        print(response.data["non_field_errors"][0])
         self.assertEqual(
             response.data["non_field_errors"][0], "Article with this slug already exists under this parent URL."
         )
+
+    def test_create_article_second_root(self):
+        article_data = {
+            "parent": None,
+            "title": "Should Not Matter",
+            "content": "This is a duplicate root article",
+        }
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.post("/api/articles/", data=article_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("non_field_errors", response.data)
+        self.assertEqual(
+            response.data["non_field_errors"][0], "A root article already exists. You must specify a parent."
+        )
+
+    # ###
+    # ### Begin tests for GET '/api/articles/{article_id}/'
+    # ###
+
+    def test_article_detail(self):
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.get(f"/api/articles/{self.articles[0].id}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(set(response.data.keys()), self.default_detail_keys)
+        self.assertEqual(set(response.data["current_revision"].keys()), self.default_list_current_revision_keys)
+
+    def test_article_detail_not_logged_in(self):
+        response = self.client.get(f"/api/articles/{self.articles[0].id}/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_article_detail_trailing_slash(self):
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.get(f"/api/articles/{self.articles[0].id}", follow=False)
+        self.assertEqual(response.status_code, status.HTTP_301_MOVED_PERMANENTLY)
+
+    def test_article_detail_not_found(self):
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.get("/api/articles/999/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    # ###
+    # ### Begin tests for PUT '/api/articles/{article_id}/'
+    # ###
+
+    def test_article_put(self):
+        article_data = {"title": "New Title", "content": "", "user_message": ""}
+
+        # Gather information first
+        root_article_revision_id = self.root_article.article.current_revision.id
+
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.put(
+            f"/api/articles/{self.root_article.id}/", data=article_data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        root_url = URLPath.objects.filter(parent__isnull=True).first()
+        self.assertIsNotNone(root_url)
+        root_article = root_url.article
+        self.assertNotEqual(root_article.current_revision.id, root_article_revision_id)
+

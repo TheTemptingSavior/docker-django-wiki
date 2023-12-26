@@ -91,7 +91,6 @@ class ArticleViewSet(
         return Response(new_article, status=status.HTTP_201_CREATED)
 
     def update(self, request, pk=None, *args, **kwargs):
-        # TODO: Should create a new revision on an article
         article = get_object_or_404(Article, pk=pk)
 
         serialized_data: NewRevisionSerializer = NewRevisionSerializer(data=request.data)
@@ -108,6 +107,9 @@ class ArticleViewSet(
         new_revision.set_from_request(request)
 
         article.add_revision(new_revision)
+
+        serialized_data = ArticleSerializer(article, context={"request": request}).data
+        return Response(serialized_data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["GET"], name="Get HTML")
     def html(self, request, pk=None, *args, **kwargs):

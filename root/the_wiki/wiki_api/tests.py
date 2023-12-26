@@ -577,6 +577,24 @@ class APIArticleTest(APITest):
             response.data["non_field_errors"][0], "A root article already exists. You must specify a parent."
         )
 
+    def test_article_create_trailing_slash(self):
+        article_data = {
+            "parent": self.root_article.id,
+            "title": "Article from the API",
+            "content": "# Hello, World!\n\nThis is the article body",
+            "summary": "Test article",
+            "permissions": {  # optional
+                "group": None,
+                "group_read": True,
+                "group_write": True,
+                "other_read": True,
+                "other_write": True,
+            },
+        }
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.post("/api/articles", data=article_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_301_MOVED_PERMANENTLY)
+
     # ###
     # ### Begin tests for GET '/api/articles/{article_id}/'
     # ###
@@ -606,7 +624,7 @@ class APIArticleTest(APITest):
     # ### Begin tests for PUT '/api/articles/{article_id}/'
     # ###
 
-    def test_article_put(self):
+    def test_article_update(self):
         article_data = {"title": "New Title", "content": "", "user_message": ""}
 
         # Gather information first
@@ -623,3 +641,47 @@ class APIArticleTest(APITest):
         root_article = root_url.article
         self.assertNotEqual(root_article.current_revision.id, root_article_revision_id)
 
+    def test_article_update_not_logged_in(self):
+        article_data = {"title": "New Title", "content": "", "user_message": ""}
+        response = self.client.put(
+            f"/api/articles/{self.root_article.id}/", data=article_data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_article_update_not_found(self):
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        article_data = {"title": "New Title", "content": "", "user_message": ""}
+        response = self.client.put(f"/api/articles/999/", data=article_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_article_update_trailing_slash(self):
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        article_data = {"title": "New Title", "content": "", "user_message": ""}
+        response = self.client.put(
+            f"/api/articles/{self.root_article.id}", data=article_data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_301_MOVED_PERMANENTLY)
+
+    # ###
+    # ### Begin tests for GET '/api/articles/{article_id}/html/'
+    # ###
+
+    def test_article_html_detail(self):
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.get(f"/api/articles/{self.root_article.id}/html/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(set(response.data.keys()), {"html"})
+
+    def test_article_html_detail_not_logged_in(self):
+        response = self.client.get(f"/api/articles/{self.root_article.id}/html/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_article_html_detail_not_found(self):
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.get(f"/api/articles/999/html/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_article_html_detail_trailing_slash(self):
+        self.assertTrue(self.client.login(username=self.admin_username, password=self.admin_password))
+        response = self.client.get(f"/api/articles/{self.root_article.id}/html")
+        self.assertEqual(response.status_code, status.HTTP_301_MOVED_PERMANENTLY)

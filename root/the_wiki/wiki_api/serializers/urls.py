@@ -9,8 +9,12 @@ from wiki_api.serializers.articles import ArticleSerializer
 
 class URLSerializer(DynamicFieldsModelSerializer):
     article = ArticleSerializer(read_only=True, fields=["id", "url", "created", "modified"])
+    path = serializers.SerializerMethodField()
     url = serializers.HyperlinkedIdentityField(view_name=f"{WikiApiConfig.name}:urlpaths-detail")
     parent_url = serializers.SerializerMethodField()
+
+    def get_path(self, obj):
+        return obj.path
 
     def get_parent_url(self, obj):
         if obj.parent:

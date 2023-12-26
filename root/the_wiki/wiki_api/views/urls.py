@@ -12,6 +12,6 @@ class URLViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gene
 
     def get_serializer(self, *args, **kwargs):
         if "many" in kwargs and kwargs["many"] is True:
-            kwargs["fields"] = ["id", "url", "article", "slug", "level", "parent"]
+            kwargs["fields"] = ["id", "url", "article", "slug", "level", "parent", "path"]
 
         return super().get_serializer(*args, **kwargs)

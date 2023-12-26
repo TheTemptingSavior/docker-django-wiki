@@ -23,8 +23,6 @@ class AuthEverywhereMiddleware:
 
         # user is not authenticated, redirect to the login page
         if not request.user.is_authenticated:
-            return redirect('/_accounts/login/')
+            return redirect("/_accounts/login/")
 
         return self.get_response(request)
-
-

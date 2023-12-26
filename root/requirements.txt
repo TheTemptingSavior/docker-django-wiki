@@ -1,6 +1,6 @@
 asgiref==3.7.2
-bleach==6.0.0
-Django==4.2.5
+bleach==6.1.0
+Django==4.2.7
 django-classy-tags==4.1.0
 django-extensions==3.2.3
 django-js-asset==2.1.0
@@ -13,7 +13,7 @@ Markdown==3.3.7
 Pillow==10.0.1
 psycopg2-binary==2.9.9
 six==1.16.0
-sorl-thumbnail==12.9.0
+sorl-thumbnail==12.10.0
 sqlparse==0.4.4
 tinycss2==1.1.1
 typing_extensions==4.8.0

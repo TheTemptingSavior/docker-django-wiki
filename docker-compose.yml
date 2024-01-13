@@ -20,6 +20,8 @@ services:
       WIKI_CUSTOM_TEMPLATES: "false"
       # Default value is '/config/templates'
       WIKI_CUSTOM_TEMPLATES_PATH: "/config/templates"
+      # Add the API plugin to installed apps
+      WIKI_API_ENABLED: "true"
     volumes:
       - ./docker-data/db:/config/db
       - ./docker-data/media:/config/media

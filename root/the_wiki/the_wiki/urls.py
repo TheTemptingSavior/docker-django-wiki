@@ -17,7 +17,20 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-urlpatterns = [
+from the_wiki import settings
+
+
+urlpatterns = []
+
+# Any URL that isn't the wiki must be included before the wiki in the list because of the catch all route that
+# django-wiki employs
+if settings.WIKI_API_ENABLED:
+    urlpatterns += [
+        path("api/", include(("wiki_api.urls", "wiki_api"))),
+        path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    ]
+
+urlpatterns += [
     path("admin/", admin.site.urls),
     path("notifications/", include("django_nyt.urls")),
     path("", include("wiki.urls")),

@@ -41,8 +41,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # my apps
-    "the_help",
     # wiki apps
     "django.contrib.sites.apps.SitesConfig",
     "django.contrib.humanize.apps.HumanizeConfig",
@@ -59,7 +57,16 @@ INSTALLED_APPS = [
     "wiki.plugins.globalhistory.apps.GlobalHistoryConfig",
     "wiki.plugins.links.apps.LinksConfig",
     "wiki.plugins.help.apps.HelpConfig",
+    # 3rd party
+    "django_extensions",
+    # my apps
+    "the_help",
 ]
+
+WIKI_API_ENABLED = False
+if os.environ.get("WIKI_API_ENABLED", "false").lower() == "true":
+    WIKI_API_ENABLED = True
+    INSTALLED_APPS += ["rest_framework", "wiki_api"]
 
 MIDDLEWARE = [
     "the_wiki.middleware.HealthCheckMiddleware",
@@ -72,7 +79,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-if os.environ.get("WIKI_AUTH_EVERYWHERE", False):
+if os.environ.get("WIKI_AUTH_EVERYWHERE", "false").lower() == "true":
     MIDDLEWARE.append("the_wiki.middleware.AuthEverywhereMiddleware")
 
 ROOT_URLCONF = "the_wiki.urls"
@@ -153,6 +160,9 @@ MEDIA_URL = "media/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Custom Django Settings
+APPEND_SLASH = True
+
 # Wiki Customization
 SITE_ID = 1
 WIKI_ACCOUNT_HANDLING = True
@@ -160,6 +170,10 @@ WIKI_ACCOUNT_SIGNUP_ALLOWED = False
 USE_SENDFILE = True
 LOOKUP_LEVEL = 3
 LOGIN_REDIRECT_URL = reverse_lazy("wiki:get", kwargs={"path": ""})
+
+# Rest Framework
+REST_FRAMEWORK = {"DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination", "PAGE_SIZE": 10}
+
 
 try:
     # Attempt to load any extra configuration the user may have provided

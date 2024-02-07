@@ -14,7 +14,7 @@ repository = "https://github.com/TheTemptingSavior/docker-django-wiki"
 dependencies = [
     "asgiref==3.7.2",
     "bleach==6.1.0",
-    "Django==4.2.7",
+    "Django==4.2.10",
     "django-classy-tags==4.1.0",
     "django-js-asset==2.1.0",
     "django-mptt==0.14.0",
